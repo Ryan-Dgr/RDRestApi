@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const Joi = require("joi");
 const app = express();
@@ -11,6 +13,17 @@ const workouts = [
   { id: 3, title: "Leg Day", category: "strength", durationMinutes: 75 },
   { id: 4, title: "Cardio", category: "cardio", durationMinutes: 30 },
 ];
+
+// @ts-ignore
+function validateWorkout(workout) {
+  const schema = Joi.object({
+    title: Joi.string().min(3).required(),
+    category: Joi.string().valid("strength", "cardio").required(),
+    durationMinutes: Joi.number().integer().min(1).required(),
+  });
+
+  return schema.validate(workout);
+}
 
 // Define a route
 app.get("/", (req, res) => {
@@ -34,13 +47,7 @@ app.get("/api/workouts/:id", (req, res) => {
 
 // post workout
 app.post("/api/workouts", (req, res) => {
-  const schema = Joi.object({
-    title: Joi.string().min(3).required(),
-    category: Joi.string().min(3).required(),
-    durationMinutes: Joi.number().integer().min(1).required(),
-  });
-
-  const result = schema.validate(req.body);
+  const result = validateWorkout(req.body);
 
   if (result.error) {
     return res.status(400).send(result.error.details[0].message);
@@ -65,13 +72,7 @@ app.put("/api/workouts/:id", (req, res) => {
     return res.status(404).send("workout niet gevonden");
   }
 
-  const schema = Joi.object({
-    title: Joi.string().min(3).required(),
-    category: Joi.string().min(3).required(),
-    durationMinutes: Joi.number().integer().min(1).required(),
-  });
-
-  const result = schema.validate(req.body);
+  const result = validateWorkout(req.body);
 
   if (result.error) {
     return res.status(400).send(result.error.details[0].message);
@@ -98,7 +99,9 @@ app.delete("/api/workouts/:id", (req, res) => {
   res.send(workout);
 });
 
+const port = process.env.PORT || 3000;
+
 // Start the server
-app.listen(3000, () => {
-  console.log("Listening on port 3000...");
+app.listen(port, () => {
+  console.log(`Listening on port ${port}...`);
 });
