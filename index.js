@@ -2,9 +2,20 @@ require("dotenv").config();
 
 const express = require("express");
 const Joi = require("joi");
+const morgan = require("morgan");
+const helmet = require("helmet");
+
 const app = express();
 
 app.use(express.json());
+
+// @ts-ignore
+app.use(helmet());
+// Use morgan only in development
+if (app.get("env") === "development") {
+  app.use(morgan("tiny"));
+  console.log("Morgan enabled...");
+}
 
 // in memory moet in mongodb
 const workouts = [
