@@ -1,6 +1,9 @@
 ## Get all workouts
 GET http://localhost:3000/api/workouts
 
+### Get specific workout
+GET http://localhost:3000/api/workouts/1
+
 ### Create a workout
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
@@ -11,5 +14,41 @@ Content-Type: application/json
     "durationMinutes": 45
 }
 
-### Get specific workout
-GET http://localhost:3000/api/workouts/1
+### Create invalid workout
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+  "title": "A",
+  "category": "strength",
+  "durationMinutes": 45
+}
+
+### Update workout
+PUT http://localhost:3000/api/workouts/1
+Content-Type: application/json
+
+{
+  "title": "Updated Push Day",
+  "category": "strength",
+  "durationMinutes": 80
+}
+
+
+### Update workout with invalid data
+PUT http://localhost:3000/api/workouts/1
+Content-Type: application/json
+
+{
+  "title": "A",
+  "category": "strength",
+  "durationMinutes": 80
+}
+
+### Delete workout
+DELETE http://localhost:3000/api/workouts/1
+
+
+### Delete workout that does not exist
+DELETE http://localhost:3000/api/workouts/999
+

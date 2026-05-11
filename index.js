@@ -57,6 +57,47 @@ app.post("/api/workouts", (req, res) => {
   res.status(201).send(workout);
 });
 
+// update workout
+app.put("/api/workouts/:id", (req, res) => {
+  const workout = workouts.find((w) => w.id === parseInt(req.params.id));
+
+  if (!workout) {
+    return res.status(404).send("workout niet gevonden");
+  }
+
+  const schema = Joi.object({
+    title: Joi.string().min(3).required(),
+    category: Joi.string().min(3).required(),
+    durationMinutes: Joi.number().integer().min(1).required(),
+  });
+
+  const result = schema.validate(req.body);
+
+  if (result.error) {
+    return res.status(400).send(result.error.details[0].message);
+  }
+
+  workout.title = req.body.title;
+  workout.category = req.body.category;
+  workout.durationMinutes = req.body.durationMinutes;
+
+  res.send(workout);
+});
+
+// delete workout
+app.delete("/api/workouts/:id", (req, res) => {
+  const workout = workouts.find((w) => w.id === parseInt(req.params.id));
+
+  if (!workout) {
+    return res.status(404).send("workout niet gevonden");
+  }
+
+  const index = workouts.indexOf(workout);
+  workouts.splice(index, 1);
+
+  res.send(workout);
+});
+
 // Start the server
 app.listen(3000, () => {
   console.log("Listening on port 3000...");
