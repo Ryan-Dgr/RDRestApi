@@ -1,0 +1,15 @@
+## Get all workouts
+GET http://localhost:3000/api/workouts
+
+### Create a workout
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+    "title": "Upper Body",
+    "category": "strength",
+    "durationMinutes": 45
+}
+
+### Get specific workout
+GET http://localhost:3000/api/workouts/1

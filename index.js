@@ -1,4 +1,5 @@
 const express = require("express");
+const Joi = require("joi");
 const app = express();
 
 app.use(express.json());
@@ -29,6 +30,31 @@ app.get("/api/workouts/:id", (req, res) => {
     return res.status(404).send("workout niet gevonden");
   }
   res.send(workout);
+});
+
+// post workout
+app.post("/api/workouts", (req, res) => {
+  const schema = Joi.object({
+    title: Joi.string().min(3).required(),
+    category: Joi.string().min(3).required(),
+    durationMinutes: Joi.number().integer().min(1).required(),
+  });
+
+  const result = schema.validate(req.body);
+
+  if (result.error) {
+    return res.status(400).send(result.error.details[0].message);
+  }
+
+  const workout = {
+    id: workouts.length + 1,
+    title: req.body.title,
+    category: req.body.category,
+    durationMinutes: req.body.durationMinutes,
+  };
+
+  workouts.push(workout);
+  res.status(201).send(workout);
 });
 
 // Start the server
