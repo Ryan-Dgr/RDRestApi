@@ -23,12 +23,12 @@ function validateWorkout(workout) {
 }
 
 // get alle workouts
-router.get("/api/workouts", (req, res) => {
+router.get("/", (req, res) => {
   res.send(workouts);
 });
 
 // get workout met id
-router.get("/api/workouts/:id", (req, res) => {
+router.get("/:id", (req, res) => {
   const workout = workouts.find((w) => w.id === parseInt(req.params.id));
 
   if (!workout) {
@@ -38,7 +38,7 @@ router.get("/api/workouts/:id", (req, res) => {
 });
 
 // post workout
-router.post("/api/workouts", (req, res) => {
+router.post("/", (req, res) => {
   const result = validateWorkout(req.body);
 
   if (result.error) {
@@ -57,7 +57,7 @@ router.post("/api/workouts", (req, res) => {
 });
 
 // update workout
-router.put("/api/workouts/:id", (req, res) => {
+router.put("/:id", (req, res) => {
   const workout = workouts.find((w) => w.id === parseInt(req.params.id));
 
   if (!workout) {
@@ -78,7 +78,7 @@ router.put("/api/workouts/:id", (req, res) => {
 });
 
 // delete workout
-router.delete("/api/workouts/:id", (req, res) => {
+router.delete("/:id", (req, res) => {
   const workout = workouts.find((w) => w.id === parseInt(req.params.id));
 
   if (!workout) {
