@@ -1,6 +1,7 @@
 const express = require("express");
 const Joi = require("joi");
 const Workout = require("../models/workout");
+const Exercise = require("../models/exercise");
 const mongoose = require("mongoose");
 const router = express.Router();
 
@@ -35,6 +36,18 @@ function isValidObjectId(id) {
 // @ts-ignore
 function hasValidExerciseIds(exercises = []) {
   return exercises.every((item) => isValidObjectId(item.exercise));
+}
+
+// Check if all referenced exercises exist in the database
+// @ts-ignore
+async function exercisesExist(exercises = []) {
+  const exerciseIds = exercises.map((item) => item.exercise);
+
+  const count = await Exercise.countDocuments({
+    _id: { $in: exerciseIds },
+  });
+
+  return count === exerciseIds.length;
 }
 
 // get alle workouts
@@ -73,6 +86,9 @@ router.post("/", async (req, res) => {
   if (!hasValidExerciseIds(req.body.exercises)) {
     return res.status(400).send("ongeldige exercise id");
   }
+  if (!(await exercisesExist(req.body.exercises))) {
+    return res.status(400).send("een of meerdere oefeningen bestaan niet");
+  }
 
   const workout = new Workout({
     title: req.body.title,
@@ -102,6 +118,9 @@ router.put("/:id", async (req, res) => {
   }
   if (!hasValidExerciseIds(req.body.exercises)) {
     return res.status(400).send("ongeldige exercise id");
+  }
+  if (!(await exercisesExist(req.body.exercises))) {
+    return res.status(400).send("een of meerdere oefeningen bestaan niet");
   }
 
   let workout;
