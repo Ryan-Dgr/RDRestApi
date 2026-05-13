@@ -6,9 +6,21 @@ const helmet = require("helmet");
 const config = require("config");
 const logger = require("./middleware/logger");
 const home = require("./routes/home");
+const mongoose = require("mongoose");
 
 const app = express();
 const workouts = require("./routes/workouts");
+
+//mongoose zonder foutmelding
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error("MONGODB_URI is not defined in .env");
+  process.exit(1);
+}
+mongoose
+  .connect(mongoUri)
+  .then(() => console.log("Connected to MongoDB..."))
+  .catch((err) => console.error("Could not connect to MongoDB...", err));
 
 app.set("view engine", "pug");
 app.set("views", "./views");
