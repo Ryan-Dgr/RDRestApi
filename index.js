@@ -5,11 +5,18 @@ const morgan = require("morgan");
 const helmet = require("helmet");
 const config = require("config");
 const home = require("./routes/home");
+const users = require("./routes/users");
+
 const mongoose = require("mongoose");
 
 const app = express();
 const workouts = require("./routes/workouts");
 const exercises = require("./routes/exercises");
+
+if (!config.get("jwtPrivateKey")) {
+  console.error("FATAL ERROR: jwtPrivateKey is not defined.");
+  process.exit(1);
+}
 
 //mongoose zonder foutmelding
 const mongoUri = process.env.MONGODB_URI;
@@ -41,6 +48,7 @@ if (app.get("env") === "development") {
 app.use("/", home);
 app.use("/api/workouts", workouts);
 app.use("/api/exercises", exercises);
+app.use("/api/users", users);
 
 const port = process.env.PORT || 3000;
 
