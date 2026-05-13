@@ -3,6 +3,7 @@ const Joi = require("joi");
 const Exercise = require("../models/exercise");
 const mongoose = require("mongoose");
 const router = express.Router();
+const Workout = require("../models/workout");
 
 /**
  * @param {{ name: string, muscleGroup: string, equipment: string }} exercise
@@ -108,9 +109,22 @@ router.put("/:id", async (req, res) => {
 });
 
 // delete exercise
+// delete exercise
 router.delete("/:id", async (req, res) => {
   if (!isValidObjectId(req.params.id)) {
     return res.status(400).send("ongeldige exercise id");
+  }
+
+  const workoutUsingExercise = await Workout.findOne({
+    "exercises.exercise": req.params.id,
+  });
+
+  if (workoutUsingExercise) {
+    return res
+      .status(400)
+      .send(
+        "exercise kan niet verwijderd worden omdat ze gebruikt wordt in een workout",
+      );
   }
 
   const exercise = await Exercise.findByIdAndDelete(req.params.id);

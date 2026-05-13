@@ -31,6 +31,45 @@ Content-Type: application/json
 ### Get exercise by id: Bench Press
 GET http://localhost:3000/api/exercises/6a0456b1d0d4e48ffe7650b4
 
+### Update exercise: Bench Press
+PUT http://localhost:3000/api/exercises/6a0456b1d0d4e48ffe7650b4
+Content-Type: application/json
+
+{
+  "name": "Bench Press",
+  "muscleGroup": "chest",
+  "equipment": "barbell"
+}
+
+
+### Delete exercise
+# Let op: gebruik dit pas als je zeker bent, want workouts kunnen deze exercise nog referencen.
+DELETE http://localhost:3000/api/exercises/6a0456b1d0d4e48ffe7650b5
+
+
+### Get exercise with invalid ObjectId
+GET http://localhost:3000/api/exercises/abc
+
+
+### Update exercise with invalid ObjectId
+PUT http://localhost:3000/api/exercises/abc
+Content-Type: application/json
+
+{
+  "name": "Bench Press",
+  "muscleGroup": "chest",
+  "equipment": "barbell"
+}
+
+
+### Delete exercise with invalid ObjectId
+DELETE http://localhost:3000/api/exercises/abc
+
+
+### Get exercise with valid ObjectId that does not exist
+GET http://localhost:3000/api/exercises/000000000000000000000000
+
+
 
 ### Create invalid exercise: invalid muscle group
 POST http://localhost:3000/api/exercises
@@ -254,3 +293,19 @@ Content-Type: application/json
   "durationMinutes": 240,
   "exercises": []
 }
+
+
+### Delete exercise that is used in a workout
+DELETE http://localhost:3000/api/exercises/6a04a07023b5babda3391d54
+
+
+### Create unused exercise
+POST http://localhost:3000/api/exercises
+Content-Type: application/json
+
+{
+  "name": "Plank",
+  "muscleGroup": "core",
+  "equipment": "bodyweight"
+}
+
