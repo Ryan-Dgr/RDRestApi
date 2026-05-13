@@ -2,7 +2,7 @@
 GET http://localhost:3000/api/workouts
 
 ### Get specific workout
-GET http://localhost:3000/api/workouts/1
+GET http://localhost:3000/api/workouts/2
 
 ### Create a workout
 POST http://localhost:3000/api/workouts
