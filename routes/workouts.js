@@ -4,6 +4,8 @@ const Workout = require("../models/workout");
 const Exercise = require("../models/exercise");
 const mongoose = require("mongoose");
 const router = express.Router();
+const auth = require("../middleware/auth");
+const admin = require("../middleware/admin");
 
 // @ts-ignore
 function validateWorkout(workout) {
@@ -77,7 +79,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // post workout
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   const result = validateWorkout(req.body);
 
   if (result.error) {
@@ -107,7 +109,7 @@ router.post("/", async (req, res) => {
 });
 
 // update workout
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, async (req, res) => {
   if (!isValidObjectId(req.params.id)) {
     return res.status(400).send("ongeldige workout id");
   }
@@ -149,7 +151,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // delete workout
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, admin, async (req, res) => {
   if (!isValidObjectId(req.params.id)) {
     return res.status(400).send("ongeldige workout id");
   }
