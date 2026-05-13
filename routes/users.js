@@ -3,13 +3,56 @@ const bcrypt = require("bcrypt");
 const _ = require("lodash");
 const { User, validate } = require("../models/user");
 const auth = require("../middleware/auth");
+const Joi = require("joi");
+const mongoose = require("mongoose");
+// @ts-ignore
+const admin = require("../middleware/admin");
 
 const router = express.Router();
 
-// get current user
+// @ts-ignore
+function validateRoleUpdate(roleUpdate) {
+  const schema = Joi.object({
+    isAdmin: Joi.boolean().required(),
+  });
+
+  return schema.validate(roleUpdate);
+}
+
+// @ts-ignore
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+// current user
 router.get("/me", auth, async (req, res) => {
   // @ts-ignore
   const user = await User.findById(req.user._id).select("-password");
+  res.send(user);
+});
+
+// update users zodat ze admin recht kunnen krijgen
+router.patch("/:id/role", auth, admin, async (req, res) => {
+  if (!isValidObjectId(req.params.id)) {
+    return res.status(400).send("ongeldige user id");
+  }
+
+  const result = validateRoleUpdate(req.body);
+
+  if (result.error) {
+    return res.status(400).send(result.error.details[0].message);
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { isAdmin: req.body.isAdmin },
+    { new: true, runValidators: true },
+  ).select("-password");
+
+  if (!user) {
+    return res.status(404).send("user niet gevonden");
+  }
+
   res.send(user);
 });
 

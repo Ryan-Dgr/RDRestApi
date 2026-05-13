@@ -9,6 +9,18 @@ Content-Type: application/json
 }
 
 
+### Register user cannot self-elevate to admin
+POST http://localhost:3000/api/users
+Content-Type: application/json
+
+{
+  "name": "Bad User",
+  "email": "bad@example.com",
+  "password": "password123",
+  "isAdmin": true
+}
+
+
 ### Login user
 POST http://localhost:3000/api/auth
 Content-Type: application/json
@@ -19,7 +31,7 @@ Content-Type: application/json
 }
 
 
-### Login user with wrong password
+### Login with wrong password
 POST http://localhost:3000/api/auth
 Content-Type: application/json
 
@@ -28,9 +40,11 @@ Content-Type: application/json
   "password": "wrongpassword"
 }
 
+
 ### Get current user
+# Replace USER_TOKEN_HERE with token from login response
 GET http://localhost:3000/api/users/me
-x-auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YTg2MjE3MGZhZmI3YmM0OTAyNmIiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg2OTAzMTQsImV4cCI6MTc3ODY5MzkxNH0.lODAc1C7qO5HAiaUJfNKtEfOwXn5W7cwQ6sGjjyMbZg
+x-auth-token: USER_TOKEN_HERE
 
 
 ### Home page
@@ -41,9 +55,11 @@ GET http://localhost:3000/
 GET http://localhost:3000/api/exercises
 
 
-### Create exercise: Bench Press
+### Create exercise with user token
+# Replace USER_TOKEN_HERE with token from login response
 POST http://localhost:3000/api/exercises
 Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
 
 {
   "name": "Bench Press",
@@ -52,23 +68,16 @@ Content-Type: application/json
 }
 
 
-### Create exercise: Shoulder Press
-POST http://localhost:3000/api/exercises
+### Get exercise by id
+# Replace EXERCISE_ID with an _id from create/get-all exercise response
+GET http://localhost:3000/api/exercises/EXERCISE_ID
+
+
+### Update exercise with user token
+# Replace USER_TOKEN_HERE and EXERCISE_ID
+PUT http://localhost:3000/api/exercises/EXERCISE_ID
 Content-Type: application/json
-
-{
-  "name": "Shoulder Press",
-  "muscleGroup": "shoulders",
-  "equipment": "dumbbell"
-}
-
-
-### Get exercise by id: Bench Press
-GET http://localhost:3000/api/exercises/6a0456b1d0d4e48ffe7650b4
-
-### Update exercise: Bench Press
-PUT http://localhost:3000/api/exercises/6a0456b1d0d4e48ffe7650b4
-Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
 
 {
   "name": "Bench Press",
@@ -77,215 +86,137 @@ Content-Type: application/json
 }
 
 
-### Delete exercise
-# Let op: gebruik dit pas als je zeker bent, want workouts kunnen deze exercise nog referencen.
-DELETE http://localhost:3000/api/exercises/6a0456b1d0d4e48ffe7650b5
+### Delete exercise with user token should fail
+# Replace USER_TOKEN_HERE and EXERCISE_ID
+DELETE http://localhost:3000/api/exercises/EXERCISE_ID
+x-auth-token: USER_TOKEN_HERE
 
 
-### Get exercise with invalid ObjectId
-GET http://localhost:3000/api/exercises/abc
-
-
-### Update exercise with invalid ObjectId
-PUT http://localhost:3000/api/exercises/abc
-Content-Type: application/json
-
-{
-  "name": "Bench Press",
-  "muscleGroup": "chest",
-  "equipment": "barbell"
-}
-
-
-### Delete exercise with invalid ObjectId
-DELETE http://localhost:3000/api/exercises/abc
-
-
-### Get exercise with valid ObjectId that does not exist
-GET http://localhost:3000/api/exercises/000000000000000000000000
-
-
-
-### Create invalid exercise: invalid muscle group
-POST http://localhost:3000/api/exercises
-Content-Type: application/json
-
-{
-  "name": "Bench Press",
-  "muscleGroup": "chesttt",
-  "equipment": "barbell"
-}
-
-
-### Create invalid exercise: invalid equipment
-POST http://localhost:3000/api/exercises
-Content-Type: application/json
-
-{
-  "name": "Bench Press",
-  "muscleGroup": "chest",
-  "equipment": "car"
-}
+### Delete exercise with admin token
+# Replace ADMIN_TOKEN_HERE and EXERCISE_ID
+DELETE http://localhost:3000/api/exercises/EXERCISE_ID
+x-auth-token: ADMIN_TOKEN_HERE
 
 
 ### Get all workouts
 GET http://localhost:3000/api/workouts
 
 
-### Create workout without exercises
+### Create workout without token should fail
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
 
 {
-  "title": "Push Day",
+  "title": "No Token Workout",
   "category": "strength",
-  "durationMinutes": 75
-}
-
-
-### Create cardio workout without exercises
-POST http://localhost:3000/api/workouts
-Content-Type: application/json
-
-{
-  "title": "Morning Cardio",
-  "category": "cardio",
-  "durationMinutes": 45
-}
-
-
-### Create workout with exercise references
-POST http://localhost:3000/api/workouts
-Content-Type: application/json
-
-{
-  "title": "Push Day With Exercises",
-  "category": "strength",
-  "durationMinutes": 75,
-  "exercises": [
-    {
-      "exercise": "6a0456b1d0d4e48ffe7650b4",
-      "sets": 4,
-      "reps": 8,
-      "kg": 80
-    },
-    {
-      "exercise": "6a0456b1d0d4e48ffe7650b5",
-      "sets": 3,
-      "reps": 10,
-      "kg": 22.5
-    }
-  ]
-}
-
-
-### Get specific workout with populated exercises
-GET http://localhost:3000/api/workouts/6a0456b1d0d4e48ffe7650b6
-
-
-### Update workout with exercise references
-PUT http://localhost:3000/api/workouts/6a0456b1d0d4e48ffe7650b6
-Content-Type: application/json
-
-{
-  "title": "Updated Push Day",
-  "category": "strength",
-  "durationMinutes": 80,
-  "exercises": [
-    {
-      "exercise": "6a0456b1d0d4e48ffe7650b4",
-      "sets": 5,
-      "reps": 5,
-      "kg": 85
-    },
-    {
-      "exercise": "6a0456b1d0d4e48ffe7650b5",
-      "sets": 3,
-      "reps": 12,
-      "kg": 24
-    }
-  ]
-}
-
-
-### Delete workout
-DELETE http://localhost:3000/api/workouts/6a0456b1d0d4e48ffe7650b6
-
-
-### Get workout with invalid ObjectId
-GET http://localhost:3000/api/workouts/abc
-
-
-### Get workout with valid ObjectId that does not exist
-GET http://localhost:3000/api/workouts/000000000000000000000000
-
-
-### Update workout with invalid ObjectId
-PUT http://localhost:3000/api/workouts/abc
-Content-Type: application/json
-
-{
-  "title": "Updated Push Day",
-  "category": "strength",
-  "durationMinutes": 80,
+  "durationMinutes": 45,
   "exercises": []
 }
 
 
-### Delete workout with invalid ObjectId
-DELETE http://localhost:3000/api/workouts/abc
-
-
-### Create invalid workout: title too short
+### Create workout with user token
+# Replace USER_TOKEN_HERE and EXERCISE_ID
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
+
+{
+  "title": "Push Day",
+  "category": "strength",
+  "durationMinutes": 75,
+  "exercises": [
+    {
+      "exercise": "EXERCISE_ID",
+      "sets": 4,
+      "reps": 8,
+      "kg": 80
+    }
+  ]
+}
+
+
+### Get workout by id
+# Replace WORKOUT_ID with an _id from create/get-all workout response
+GET http://localhost:3000/api/workouts/WORKOUT_ID
+
+
+### Update workout with user token
+# Replace USER_TOKEN_HERE, WORKOUT_ID and EXERCISE_ID
+PUT http://localhost:3000/api/workouts/WORKOUT_ID
+Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
+
+{
+  "title": "Updated Push Day",
+  "category": "strength",
+  "durationMinutes": 80,
+  "exercises": [
+    {
+      "exercise": "EXERCISE_ID",
+      "sets": 5,
+      "reps": 5,
+      "kg": 85
+    }
+  ]
+}
+
+
+### Delete workout with user token should fail
+# Replace USER_TOKEN_HERE and WORKOUT_ID
+DELETE http://localhost:3000/api/workouts/WORKOUT_ID
+x-auth-token: USER_TOKEN_HERE
+
+
+### Delete workout with admin token
+# Replace ADMIN_TOKEN_HERE and WORKOUT_ID
+DELETE http://localhost:3000/api/workouts/WORKOUT_ID
+x-auth-token: ADMIN_TOKEN_HERE
+
+
+### Invalid ObjectId for exercise
+GET http://localhost:3000/api/exercises/abc
+
+
+### Invalid ObjectId for workout
+GET http://localhost:3000/api/workouts/abc
+
+
+### Existing format but non-existing workout id
+GET http://localhost:3000/api/workouts/000000000000000000000000
+
+
+### Invalid exercise body
+POST http://localhost:3000/api/exercises
+Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
+
+{
+  "name": "Bench Press",
+  "muscleGroup": "invalid",
+  "equipment": "barbell"
+}
+
+
+### Invalid workout body
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
 
 {
   "title": "A",
   "category": "strength",
-  "durationMinutes": 45
+  "durationMinutes": 45,
+  "exercises": []
 }
 
 
-### Create invalid workout: invalid category
+### Workout with invalid referenced exercise id
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
 
 {
-  "title": "Dance Session",
-  "category": "dance",
-  "durationMinutes": 45
-}
-
-
-### Create invalid workout: duration too high
-POST http://localhost:3000/api/workouts
-Content-Type: application/json
-
-{
-  "title": "Too Long Workout",
-  "category": "strength",
-  "durationMinutes": 400
-}
-
-
-### Create invalid workout: cardio custom validator
-POST http://localhost:3000/api/workouts
-Content-Type: application/json
-
-{
-  "title": "Very Long Cardio",
-  "category": "cardio",
-  "durationMinutes": 240
-}
-
-
-### Create invalid workout: invalid exercise ObjectId
-POST http://localhost:3000/api/workouts
-Content-Type: application/json
-
-{
-  "title": "Invalid Exercise Id Workout",
+  "title": "Invalid Exercise Reference",
   "category": "strength",
   "durationMinutes": 75,
   "exercises": [
@@ -299,12 +230,13 @@ Content-Type: application/json
 }
 
 
-### Create invalid workout: exercise does not exist
+### Workout with non-existing referenced exercise
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
+x-auth-token: USER_TOKEN_HERE
 
 {
-  "title": "Missing Exercise Workout",
+  "title": "Missing Exercise Reference",
   "category": "strength",
   "durationMinutes": 75,
   "exercises": [
@@ -316,31 +248,3 @@ Content-Type: application/json
     }
   ]
 }
-
-
-### Create valid long strength workout
-POST http://localhost:3000/api/workouts
-Content-Type: application/json
-
-{
-  "title": "Long Strength Session",
-  "category": "strength",
-  "durationMinutes": 240,
-  "exercises": []
-}
-
-
-### Delete exercise that is used in a workout
-DELETE http://localhost:3000/api/exercises/6a04a07023b5babda3391d54
-
-
-### Create unused exercise
-POST http://localhost:3000/api/exercises
-Content-Type: application/json
-
-{
-  "name": "Plank",
-  "muscleGroup": "core",
-  "equipment": "bodyweight"
-}
-
