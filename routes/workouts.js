@@ -33,7 +33,10 @@ function isValidObjectId(id) {
 
 // get alle workouts
 router.get("/", async (req, res) => {
-  const workouts = await Workout.find().sort({ title: 1 });
+  const workouts = await Workout.find()
+    .sort({ title: 1 })
+    .populate("exercises.exercise");
+
   res.send(workouts);
 });
 
@@ -43,7 +46,9 @@ router.get("/:id", async (req, res) => {
     return res.status(400).send("ongeldige workout id");
   }
 
-  const workout = await Workout.findById(req.params.id);
+  const workout = await Workout.findById(req.params.id).populate(
+    "exercises.exercise",
+  );
 
   if (!workout) {
     return res.status(404).send("workout niet gevonden");
