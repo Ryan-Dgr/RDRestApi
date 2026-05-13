@@ -31,6 +31,12 @@ function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
+// Validate exercise ObjectIds inside a workout
+// @ts-ignore
+function hasValidExerciseIds(exercises = []) {
+  return exercises.every((item) => isValidObjectId(item.exercise));
+}
+
 // get alle workouts
 router.get("/", async (req, res) => {
   const workouts = await Workout.find()
@@ -64,6 +70,9 @@ router.post("/", async (req, res) => {
   if (result.error) {
     return res.status(400).send(result.error.details[0].message);
   }
+  if (!hasValidExerciseIds(req.body.exercises)) {
+    return res.status(400).send("ongeldige exercise id");
+  }
 
   const workout = new Workout({
     title: req.body.title,
@@ -90,6 +99,9 @@ router.put("/:id", async (req, res) => {
 
   if (result.error) {
     return res.status(400).send(result.error.details[0].message);
+  }
+  if (!hasValidExerciseIds(req.body.exercises)) {
+    return res.status(400).send("ongeldige exercise id");
   }
 
   let workout;
