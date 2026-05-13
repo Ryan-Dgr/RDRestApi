@@ -1,3 +1,35 @@
+### Register user
+POST http://localhost:3000/api/users
+Content-Type: application/json
+
+{
+  "name": "Ryan User",
+  "email": "ryan@example.com",
+  "password": "password123"
+}
+
+
+### Login user
+POST http://localhost:3000/api/auth
+Content-Type: application/json
+
+{
+  "email": "ryan@example.com",
+  "password": "password123"
+}
+
+
+### Login user with wrong password
+POST http://localhost:3000/api/auth
+Content-Type: application/json
+
+{
+  "email": "ryan@example.com",
+  "password": "wrongpassword"
+}
+
+
+
 ### Home page
 GET http://localhost:3000/
 
