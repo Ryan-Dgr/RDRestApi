@@ -2,11 +2,63 @@
 GET http://localhost:3000/
 
 
+### Get all exercises
+GET http://localhost:3000/api/exercises
+
+
+### Create exercise: Bench Press
+POST http://localhost:3000/api/exercises
+Content-Type: application/json
+
+{
+  "name": "Bench Press",
+  "muscleGroup": "chest",
+  "equipment": "barbell"
+}
+
+
+### Create exercise: Shoulder Press
+POST http://localhost:3000/api/exercises
+Content-Type: application/json
+
+{
+  "name": "Shoulder Press",
+  "muscleGroup": "shoulders",
+  "equipment": "dumbbell"
+}
+
+
+### Get exercise by id: Bench Press
+GET http://localhost:3000/api/exercises/6a0456b1d0d4e48ffe7650b4
+
+
+### Create invalid exercise: invalid muscle group
+POST http://localhost:3000/api/exercises
+Content-Type: application/json
+
+{
+  "name": "Bench Press",
+  "muscleGroup": "chesttt",
+  "equipment": "barbell"
+}
+
+
+### Create invalid exercise: invalid equipment
+POST http://localhost:3000/api/exercises
+Content-Type: application/json
+
+{
+  "name": "Bench Press",
+  "muscleGroup": "chest",
+  "equipment": "car"
+}
+
+
 ### Get all workouts
 GET http://localhost:3000/api/workouts
 
 
-### Create workout
+### Create workout without exercises
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
 
@@ -17,7 +69,7 @@ Content-Type: application/json
 }
 
 
-### Create cardio workout
+### Create cardio workout without exercises
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
 
@@ -28,26 +80,62 @@ Content-Type: application/json
 }
 
 
-### Get specific workout
-# Replace WORKOUT_ID with an _id from a create/get-all response
-GET http://localhost:3000/api/workouts/WORKOUT_ID
+### Create workout with exercise references
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+  "title": "Push Day With Exercises",
+  "category": "strength",
+  "durationMinutes": 75,
+  "exercises": [
+    {
+      "exercise": "6a0456b1d0d4e48ffe7650b4",
+      "sets": 4,
+      "reps": 8,
+      "kg": 80
+    },
+    {
+      "exercise": "6a0456b1d0d4e48ffe7650b5",
+      "sets": 3,
+      "reps": 10,
+      "kg": 22.5
+    }
+  ]
+}
 
 
-### Update workout
-# Replace WORKOUT_ID with an _id from a create/get-all response
-PUT http://localhost:3000/api/workouts/WORKOUT_ID
+### Get specific workout with populated exercises
+GET http://localhost:3000/api/workouts/6a0456b1d0d4e48ffe7650b6
+
+
+### Update workout with exercise references
+PUT http://localhost:3000/api/workouts/6a0456b1d0d4e48ffe7650b6
 Content-Type: application/json
 
 {
   "title": "Updated Push Day",
   "category": "strength",
-  "durationMinutes": 80
+  "durationMinutes": 80,
+  "exercises": [
+    {
+      "exercise": "6a0456b1d0d4e48ffe7650b4",
+      "sets": 5,
+      "reps": 5,
+      "kg": 85
+    },
+    {
+      "exercise": "6a0456b1d0d4e48ffe7650b5",
+      "sets": 3,
+      "reps": 12,
+      "kg": 24
+    }
+  ]
 }
 
 
 ### Delete workout
-# Replace WORKOUT_ID with an _id from a create/get-all response
-DELETE http://localhost:3000/api/workouts/WORKOUT_ID
+DELETE http://localhost:3000/api/workouts/6a0456b1d0d4e48ffe7650b6
 
 
 ### Get workout with invalid ObjectId
@@ -65,7 +153,8 @@ Content-Type: application/json
 {
   "title": "Updated Push Day",
   "category": "strength",
-  "durationMinutes": 80
+  "durationMinutes": 80,
+  "exercises": []
 }
 
 
@@ -117,6 +206,44 @@ Content-Type: application/json
 }
 
 
+### Create invalid workout: invalid exercise ObjectId
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+  "title": "Invalid Exercise Id Workout",
+  "category": "strength",
+  "durationMinutes": 75,
+  "exercises": [
+    {
+      "exercise": "abc",
+      "sets": 4,
+      "reps": 8,
+      "kg": 80
+    }
+  ]
+}
+
+
+### Create invalid workout: exercise does not exist
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+  "title": "Missing Exercise Workout",
+  "category": "strength",
+  "durationMinutes": 75,
+  "exercises": [
+    {
+      "exercise": "000000000000000000000000",
+      "sets": 4,
+      "reps": 8,
+      "kg": 80
+    }
+  ]
+}
+
+
 ### Create valid long strength workout
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
@@ -124,5 +251,6 @@ Content-Type: application/json
 {
   "title": "Long Strength Session",
   "category": "strength",
-  "durationMinutes": 240
+  "durationMinutes": 240,
+  "exercises": []
 }
