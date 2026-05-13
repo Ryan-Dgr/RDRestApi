@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 
 const app = express();
 const workouts = require("./routes/workouts");
+const exercises = require("./routes/exercises");
 
 //mongoose zonder foutmelding
 const mongoUri = process.env.MONGODB_URI;
@@ -39,6 +40,7 @@ if (app.get("env") === "development") {
 // Define a route
 app.use("/", home);
 app.use("/api/workouts", workouts);
+app.use("/api/exercises", exercises);
 
 const port = process.env.PORT || 3000;
 

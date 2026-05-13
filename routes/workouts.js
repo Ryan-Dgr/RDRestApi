@@ -10,6 +10,16 @@ function validateWorkout(workout) {
     title: Joi.string().min(3).max(100).required(),
     category: Joi.string().valid("strength", "cardio").required(),
     durationMinutes: Joi.number().integer().min(1).max(300).required(),
+    exercises: Joi.array()
+      .items(
+        Joi.object({
+          exercise: Joi.string().required(),
+          sets: Joi.number().integer().min(1).max(20).required(),
+          reps: Joi.number().integer().min(1).max(100).required(),
+          kg: Joi.number().min(0).max(500).required(),
+        }),
+      )
+      .default([]),
   });
 
   return schema.validate(workout);
@@ -54,6 +64,7 @@ router.post("/", async (req, res) => {
     title: req.body.title,
     category: req.body.category,
     durationMinutes: req.body.durationMinutes,
+    exercises: req.body.exercises,
   });
 
   try {
@@ -85,6 +96,7 @@ router.put("/:id", async (req, res) => {
         title: req.body.title,
         category: req.body.category,
         durationMinutes: req.body.durationMinutes,
+        exercises: req.body.exercises,
       },
       { new: true, runValidators: true },
     );
