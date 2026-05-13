@@ -56,9 +56,13 @@ router.post("/", async (req, res) => {
     durationMinutes: req.body.durationMinutes,
   });
 
-  await workout.save();
-
-  res.status(201).send(workout);
+  try {
+    await workout.save();
+    res.status(201).send(workout);
+  } catch (err) {
+    // @ts-ignore
+    res.status(400).send(err.message);
+  }
 });
 
 // update workout
@@ -72,15 +76,22 @@ router.put("/:id", async (req, res) => {
     return res.status(400).send(result.error.details[0].message);
   }
 
-  const workout = await Workout.findByIdAndUpdate(
-    req.params.id,
-    {
-      title: req.body.title,
-      category: req.body.category,
-      durationMinutes: req.body.durationMinutes,
-    },
-    { new: true, runValidators: true },
-  );
+  let workout;
+
+  try {
+    workout = await Workout.findByIdAndUpdate(
+      req.params.id,
+      {
+        title: req.body.title,
+        category: req.body.category,
+        durationMinutes: req.body.durationMinutes,
+      },
+      { new: true, runValidators: true },
+    );
+  } catch (err) {
+    // @ts-ignore
+    return res.status(400).send(err.message);
+  }
 
   if (!workout) {
     return res.status(404).send("workout niet gevonden");

@@ -17,7 +17,19 @@ const workoutSchema = new mongoose.Schema({
     required: true,
     min: 1,
     max: 300,
+    validate: {
+      // @ type is om geef foutmelding te krijgen
+      validator: function (/** @type {number} */ value) {
+        if (this.category === "cardio") {
+          return value <= 180;
+        }
+
+        return true;
+      },
+      message: "Cardio workouts cannot be longer than 180 minutes.",
+    },
   },
+
   createdAt: {
     type: Date,
     default: Date.now,
