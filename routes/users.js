@@ -1,16 +1,15 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
-const { User, validate } = require("../models/user");
-const auth = require("../middleware/auth");
 const Joi = require("joi");
 const mongoose = require("mongoose");
-// @ts-ignore
+const { User, validate } = require("../models/user");
+const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const asyncMiddleware = require("../middleware/async");
 
 const router = express.Router();
 
-// @ts-ignore
 function validateRoleUpdate(roleUpdate) {
   const schema = Joi.object({
     isAdmin: Joi.boolean().required(),
@@ -19,70 +18,79 @@ function validateRoleUpdate(roleUpdate) {
   return schema.validate(roleUpdate);
 }
 
-// @ts-ignore
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
 // current user
-router.get("/me", auth, async (req, res) => {
-  // @ts-ignore
-  const user = await User.findById(req.user._id).select("-password");
-  res.send(user);
-});
+router.get(
+  "/me",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    const user = await User.findById(req.user._id).select("-password");
+    res.send(user);
+  }),
+);
 
-// update users zodat ze admin recht kunnen krijgen
-router.patch("/:id/role", auth, admin, async (req, res) => {
-  if (!isValidObjectId(req.params.id)) {
-    return res.status(400).send("ongeldige user id");
-  }
+// update user role - admin only
+router.patch(
+  "/:id/role",
+  auth,
+  admin,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).send("ongeldige user id");
+    }
 
-  const result = validateRoleUpdate(req.body);
+    const result = validateRoleUpdate(req.body);
 
-  if (result.error) {
-    return res.status(400).send(result.error.details[0].message);
-  }
+    if (result.error) {
+      return res.status(400).send(result.error.details[0].message);
+    }
 
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    { isAdmin: req.body.isAdmin },
-    { new: true, runValidators: true },
-  ).select("-password");
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { isAdmin: req.body.isAdmin },
+      { new: true, runValidators: true },
+    ).select("-password");
 
-  if (!user) {
-    return res.status(404).send("user niet gevonden");
-  }
+    if (!user) {
+      return res.status(404).send("user niet gevonden");
+    }
 
-  res.send(user);
-});
+    res.send(user);
+  }),
+);
 
 // register new user
-router.post("/", async (req, res) => {
-  const result = validate(req.body);
+router.post(
+  "/",
+  asyncMiddleware(async (req, res) => {
+    const result = validate(req.body);
 
-  if (result.error) {
-    return res.status(400).send(result.error.details[0].message);
-  }
+    if (result.error) {
+      return res.status(400).send(result.error.details[0].message);
+    }
 
-  let user = await User.findOne({ email: req.body.email });
+    let user = await User.findOne({ email: req.body.email });
 
-  if (user) {
-    return res.status(400).send("User already registered.");
-  }
+    if (user) {
+      return res.status(400).send("User already registered.");
+    }
 
-  user = new User(_.pick(req.body, ["name", "email", "password"]));
-  // bcrypt maakt hash van ww
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(user.password, salt);
+    user = new User(_.pick(req.body, ["name", "email", "password"]));
 
-  await user.save();
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
 
-  // @ts-ignore
-  const token = user.generateAuthToken();
+    await user.save();
 
-  res
-    .header("x-auth-token", token)
-    .send(_.pick(user, ["_id", "name", "email"]));
-});
+    const token = user.generateAuthToken();
+
+    res
+      .header("x-auth-token", token)
+      .send(_.pick(user, ["_id", "name", "email"]));
+  }),
+);
 
 module.exports = router;

@@ -1,14 +1,14 @@
 const express = require("express");
 const Joi = require("joi");
+const mongoose = require("mongoose");
 const Workout = require("../models/workout");
 const Exercise = require("../models/exercise");
-const mongoose = require("mongoose");
-const router = express.Router();
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 const asyncMiddleware = require("../middleware/async");
 
-// @ts-ignore
+const router = express.Router();
+
 function validateWorkout(workout) {
   const schema = Joi.object({
     title: Joi.string().min(3).max(100).required(),
@@ -29,20 +29,14 @@ function validateWorkout(workout) {
   return schema.validate(workout);
 }
 
-// Validate MongoDB ObjectId
-// @ts-ignore
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-// Validate exercise ObjectIds inside a workout
-// @ts-ignore
 function hasValidExerciseIds(exercises = []) {
   return exercises.every((item) => isValidObjectId(item.exercise));
 }
 
-// Check if all referenced exercises exist in the database
-// @ts-ignore
 async function exercisesExist(exercises = []) {
   const exerciseIds = exercises.map((item) => item.exercise);
 
@@ -53,10 +47,9 @@ async function exercisesExist(exercises = []) {
   return count === exerciseIds.length;
 }
 
-// get alle workouts
+// get all workouts
 router.get(
   "/",
-  // @ts-ignore
   asyncMiddleware(async (req, res) => {
     const workouts = await Workout.find()
       .sort({ title: 1 })
@@ -66,74 +59,82 @@ router.get(
   }),
 );
 
-// get workout met id
-router.get("/:id", async (req, res) => {
-  if (!isValidObjectId(req.params.id)) {
-    return res.status(400).send("ongeldige workout id");
-  }
+// get workout by id
+router.get(
+  "/:id",
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).send("ongeldige workout id");
+    }
 
-  const workout = await Workout.findById(req.params.id).populate(
-    "exercises.exercise",
-  );
+    const workout = await Workout.findById(req.params.id).populate(
+      "exercises.exercise",
+    );
 
-  if (!workout) {
-    return res.status(404).send("workout niet gevonden");
-  }
+    if (!workout) {
+      return res.status(404).send("workout niet gevonden");
+    }
 
-  res.send(workout);
-});
+    res.send(workout);
+  }),
+);
 
-// post workout
-router.post("/", auth, async (req, res) => {
-  const result = validateWorkout(req.body);
+// create workout
+router.post(
+  "/",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    const result = validateWorkout(req.body);
 
-  if (result.error) {
-    return res.status(400).send(result.error.details[0].message);
-  }
-  if (!hasValidExerciseIds(req.body.exercises)) {
-    return res.status(400).send("ongeldige exercise id");
-  }
-  if (!(await exercisesExist(req.body.exercises))) {
-    return res.status(400).send("een of meerdere oefeningen bestaan niet");
-  }
+    if (result.error) {
+      return res.status(400).send(result.error.details[0].message);
+    }
 
-  const workout = new Workout({
-    title: req.body.title,
-    category: req.body.category,
-    durationMinutes: req.body.durationMinutes,
-    exercises: req.body.exercises,
-  });
+    if (!hasValidExerciseIds(req.body.exercises)) {
+      return res.status(400).send("ongeldige exercise id");
+    }
 
-  try {
+    if (!(await exercisesExist(req.body.exercises))) {
+      return res.status(400).send("een of meerdere oefeningen bestaan niet");
+    }
+
+    const workout = new Workout({
+      title: req.body.title,
+      category: req.body.category,
+      durationMinutes: req.body.durationMinutes,
+      exercises: req.body.exercises,
+    });
+
     await workout.save();
+
     res.status(201).send(workout);
-  } catch (err) {
-    // @ts-ignore
-    res.status(400).send(err.message);
-  }
-});
+  }),
+);
 
 // update workout
-router.put("/:id", auth, async (req, res) => {
-  if (!isValidObjectId(req.params.id)) {
-    return res.status(400).send("ongeldige workout id");
-  }
-  const result = validateWorkout(req.body);
+router.put(
+  "/:id",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).send("ongeldige workout id");
+    }
 
-  if (result.error) {
-    return res.status(400).send(result.error.details[0].message);
-  }
-  if (!hasValidExerciseIds(req.body.exercises)) {
-    return res.status(400).send("ongeldige exercise id");
-  }
-  if (!(await exercisesExist(req.body.exercises))) {
-    return res.status(400).send("een of meerdere oefeningen bestaan niet");
-  }
+    const result = validateWorkout(req.body);
 
-  let workout;
+    if (result.error) {
+      return res.status(400).send(result.error.details[0].message);
+    }
 
-  try {
-    workout = await Workout.findByIdAndUpdate(
+    if (!hasValidExerciseIds(req.body.exercises)) {
+      return res.status(400).send("ongeldige exercise id");
+    }
+
+    if (!(await exercisesExist(req.body.exercises))) {
+      return res.status(400).send("een of meerdere oefeningen bestaan niet");
+    }
+
+    const workout = await Workout.findByIdAndUpdate(
       req.params.id,
       {
         title: req.body.title,
@@ -143,30 +144,33 @@ router.put("/:id", auth, async (req, res) => {
       },
       { new: true, runValidators: true },
     );
-  } catch (err) {
-    // @ts-ignore
-    return res.status(400).send(err.message);
-  }
 
-  if (!workout) {
-    return res.status(404).send("workout niet gevonden");
-  }
+    if (!workout) {
+      return res.status(404).send("workout niet gevonden");
+    }
 
-  res.send(workout);
-});
+    res.send(workout);
+  }),
+);
 
 // delete workout
-router.delete("/:id", auth, admin, async (req, res) => {
-  if (!isValidObjectId(req.params.id)) {
-    return res.status(400).send("ongeldige workout id");
-  }
-  const workout = await Workout.findByIdAndDelete(req.params.id);
+router.delete(
+  "/:id",
+  auth,
+  admin,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).send("ongeldige workout id");
+    }
 
-  if (!workout) {
-    return res.status(404).send("workout niet gevonden");
-  }
+    const workout = await Workout.findByIdAndDelete(req.params.id);
 
-  res.send(workout);
-});
+    if (!workout) {
+      return res.status(404).send("workout niet gevonden");
+    }
+
+    res.send(workout);
+  }),
+);
 
 module.exports = router;
