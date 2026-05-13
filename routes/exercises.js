@@ -110,7 +110,6 @@ router.put("/:id", auth, async (req, res) => {
 });
 
 // delete exercise
-// delete exercise
 router.delete("/:id", auth, admin, async (req, res) => {
   if (!isValidObjectId(req.params.id)) {
     return res.status(400).send("ongeldige exercise id");

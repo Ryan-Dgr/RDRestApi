@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const router = express.Router();
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const asyncMiddleware = require("../middleware/async");
 
 // @ts-ignore
 function validateWorkout(workout) {
@@ -53,13 +54,17 @@ async function exercisesExist(exercises = []) {
 }
 
 // get alle workouts
-router.get("/", async (req, res) => {
-  const workouts = await Workout.find()
-    .sort({ title: 1 })
-    .populate("exercises.exercise");
+router.get(
+  "/",
+  // @ts-ignore
+  asyncMiddleware(async (req, res) => {
+    const workouts = await Workout.find()
+      .sort({ title: 1 })
+      .populate("exercises.exercise");
 
-  res.send(workouts);
-});
+    res.send(workouts);
+  }),
+);
 
 // get workout met id
 router.get("/:id", async (req, res) => {

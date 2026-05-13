@@ -1,16 +1,18 @@
-### Register user
-POST http://localhost:3000/api/users
-Content-Type: application/json
+@baseUrl = http://localhost:3000
+@userEmail = test20260513184730@example.com
+@password = password123
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzc4NjkwODUwLCJleHAiOjE3Nzg2OTQ0NTB9.95Urr2qyYlj_T84AImVSRasqa9wcbvmExuwar8atqjg
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg2OTA4ODEsImV4cCI6MTc3ODY5NDQ4MX0.hcS_kVYspiplNihjmNfjRkyH2LbqLmVk80kiw8ZrjSA
+@exerciseId = 6a04ab22eb1753653bcc64ab
+@unusedExerciseId = 6a04ab22eb1753653bcc64ac
+@workoutId = 6a04ab22eb1753653bcc64ad
 
-{
-  "name": "Ryan User",
-  "email": "ryan@example.com",
-  "password": "password123"
-}
+### Home page
+GET {{baseUrl}}/
 
 
 ### Register user cannot self-elevate to admin
-POST http://localhost:3000/api/users
+POST {{baseUrl}}/api/users
 Content-Type: application/json
 
 {
@@ -22,88 +24,83 @@ Content-Type: application/json
 
 
 ### Login user
-POST http://localhost:3000/api/auth
+POST {{baseUrl}}/api/auth
 Content-Type: application/json
 
 {
-  "email": "ryan@example.com",
-  "password": "password123"
+  "email": "{{userEmail}}",
+  "password": "{{password}}"
 }
 
 
 ### Login with wrong password
-POST http://localhost:3000/api/auth
+POST {{baseUrl}}/api/auth
 Content-Type: application/json
 
 {
-  "email": "ryan@example.com",
+  "email": "{{userEmail}}",
   "password": "wrongpassword"
 }
 
 
 ### Get current user
-# Replace USER_TOKEN_HERE with token from login response
-GET http://localhost:3000/api/users/me
-x-auth-token: USER_TOKEN_HERE
-
-
-### Home page
-GET http://localhost:3000/
+GET {{baseUrl}}/api/users/me
+x-auth-token: {{userToken}}
 
 
 ### Get all exercises
-GET http://localhost:3000/api/exercises
+GET {{baseUrl}}/api/exercises
 
 
 ### Create exercise with user token
-# Replace USER_TOKEN_HERE with token from login response
-POST http://localhost:3000/api/exercises
+POST {{baseUrl}}/api/exercises
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
-  "name": "Bench Press",
-  "muscleGroup": "chest",
-  "equipment": "barbell"
+  "name": "Cable Row Test",
+  "muscleGroup": "back",
+  "equipment": "cable"
 }
 
 
 ### Get exercise by id
-# Replace EXERCISE_ID with an _id from create/get-all exercise response
-GET http://localhost:3000/api/exercises/EXERCISE_ID
+GET {{baseUrl}}/api/exercises/{{exerciseId}}
 
 
 ### Update exercise with user token
-# Replace USER_TOKEN_HERE and EXERCISE_ID
-PUT http://localhost:3000/api/exercises/EXERCISE_ID
+PUT {{baseUrl}}/api/exercises/{{exerciseId}}
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
-  "name": "Bench Press",
+  "name": "Bench Press Test",
   "muscleGroup": "chest",
   "equipment": "barbell"
 }
 
 
 ### Delete exercise with user token should fail
-# Replace USER_TOKEN_HERE and EXERCISE_ID
-DELETE http://localhost:3000/api/exercises/EXERCISE_ID
-x-auth-token: USER_TOKEN_HERE
+DELETE {{baseUrl}}/api/exercises/{{unusedExerciseId}}
+x-auth-token: {{userToken}}
 
 
-### Delete exercise with admin token
-# Replace ADMIN_TOKEN_HERE and EXERCISE_ID
-DELETE http://localhost:3000/api/exercises/EXERCISE_ID
-x-auth-token: ADMIN_TOKEN_HERE
+### Delete exercise used in workout with admin token should fail
+DELETE {{baseUrl}}/api/exercises/{{exerciseId}}
+x-auth-token: {{adminToken}}
+
+
+### Delete unused exercise with admin token
+DELETE {{baseUrl}}/api/exercises/{{unusedExerciseId}}
+x-auth-token: {{adminToken}}
 
 
 ### Get all workouts
-GET http://localhost:3000/api/workouts
+GET {{baseUrl}}/api/workouts
 
 
 ### Create workout without token should fail
-POST http://localhost:3000/api/workouts
+POST {{baseUrl}}/api/workouts
 Content-Type: application/json
 
 {
@@ -115,18 +112,17 @@ Content-Type: application/json
 
 
 ### Create workout with user token
-# Replace USER_TOKEN_HERE and EXERCISE_ID
-POST http://localhost:3000/api/workouts
+POST {{baseUrl}}/api/workouts
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
-  "title": "Push Day",
+  "title": "Push Day HTTP Test",
   "category": "strength",
   "durationMinutes": 75,
   "exercises": [
     {
-      "exercise": "EXERCISE_ID",
+      "exercise": "{{exerciseId}}",
       "sets": 4,
       "reps": 8,
       "kg": 80
@@ -136,23 +132,21 @@ x-auth-token: USER_TOKEN_HERE
 
 
 ### Get workout by id
-# Replace WORKOUT_ID with an _id from create/get-all workout response
-GET http://localhost:3000/api/workouts/WORKOUT_ID
+GET {{baseUrl}}/api/workouts/{{workoutId}}
 
 
 ### Update workout with user token
-# Replace USER_TOKEN_HERE, WORKOUT_ID and EXERCISE_ID
-PUT http://localhost:3000/api/workouts/WORKOUT_ID
+PUT {{baseUrl}}/api/workouts/{{workoutId}}
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
-  "title": "Updated Push Day",
+  "title": "Updated Push Day Test",
   "category": "strength",
   "durationMinutes": 80,
   "exercises": [
     {
-      "exercise": "EXERCISE_ID",
+      "exercise": "{{exerciseId}}",
       "sets": 5,
       "reps": 5,
       "kg": 85
@@ -162,33 +156,31 @@ x-auth-token: USER_TOKEN_HERE
 
 
 ### Delete workout with user token should fail
-# Replace USER_TOKEN_HERE and WORKOUT_ID
-DELETE http://localhost:3000/api/workouts/WORKOUT_ID
-x-auth-token: USER_TOKEN_HERE
+DELETE {{baseUrl}}/api/workouts/{{workoutId}}
+x-auth-token: {{userToken}}
 
 
 ### Delete workout with admin token
-# Replace ADMIN_TOKEN_HERE and WORKOUT_ID
-DELETE http://localhost:3000/api/workouts/WORKOUT_ID
-x-auth-token: ADMIN_TOKEN_HERE
+DELETE {{baseUrl}}/api/workouts/{{workoutId}}
+x-auth-token: {{adminToken}}
 
 
 ### Invalid ObjectId for exercise
-GET http://localhost:3000/api/exercises/abc
+GET {{baseUrl}}/api/exercises/abc
 
 
 ### Invalid ObjectId for workout
-GET http://localhost:3000/api/workouts/abc
+GET {{baseUrl}}/api/workouts/abc
 
 
 ### Existing format but non-existing workout id
-GET http://localhost:3000/api/workouts/000000000000000000000000
+GET {{baseUrl}}/api/workouts/000000000000000000000000
 
 
 ### Invalid exercise body
-POST http://localhost:3000/api/exercises
+POST {{baseUrl}}/api/exercises
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
   "name": "Bench Press",
@@ -198,9 +190,9 @@ x-auth-token: USER_TOKEN_HERE
 
 
 ### Invalid workout body
-POST http://localhost:3000/api/workouts
+POST {{baseUrl}}/api/workouts
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
   "title": "A",
@@ -211,9 +203,9 @@ x-auth-token: USER_TOKEN_HERE
 
 
 ### Workout with invalid referenced exercise id
-POST http://localhost:3000/api/workouts
+POST {{baseUrl}}/api/workouts
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
   "title": "Invalid Exercise Reference",
@@ -231,9 +223,9 @@ x-auth-token: USER_TOKEN_HERE
 
 
 ### Workout with non-existing referenced exercise
-POST http://localhost:3000/api/workouts
+POST {{baseUrl}}/api/workouts
 Content-Type: application/json
-x-auth-token: USER_TOKEN_HERE
+x-auth-token: {{userToken}}
 
 {
   "title": "Missing Exercise Reference",

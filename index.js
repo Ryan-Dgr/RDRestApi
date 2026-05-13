@@ -7,6 +7,7 @@ const config = require("config");
 const home = require("./routes/home");
 const users = require("./routes/users");
 const auth = require("./routes/auth");
+const error = require("./middleware/error");
 
 const mongoose = require("mongoose");
 
@@ -52,6 +53,7 @@ app.use("/api/exercises", exercises);
 app.use("/api/users", users);
 app.use("/api/auth", auth);
 
+app.use(error);
 const port = process.env.PORT || 3000;
 
 // Start the server

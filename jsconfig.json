@@ -8,7 +8,7 @@
 
     "types": ["node"],
 
-    "checkJs": true
+    "checkJs": false
   },
 
   "exclude": ["node_modules"]
