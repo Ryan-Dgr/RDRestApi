@@ -1,15 +1,8 @@
 const express = require("express");
 const Joi = require("joi");
+const Workout = require("../models/workout");
 
 const router = express.Router();
-
-// in memory moet in mongodb
-const workouts = [
-  { id: 1, title: "Push Day", category: "strength", durationMinutes: 75 },
-  { id: 2, title: "Pull Day", category: "strength", durationMinutes: 75 },
-  { id: 3, title: "Leg Day", category: "strength", durationMinutes: 75 },
-  { id: 4, title: "Cardio", category: "cardio", durationMinutes: 30 },
-];
 
 // @ts-ignore
 function validateWorkout(workout) {
@@ -23,70 +16,73 @@ function validateWorkout(workout) {
 }
 
 // get alle workouts
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
+  const workouts = await Workout.find().sort({ title: 1 });
   res.send(workouts);
 });
 
 // get workout met id
-router.get("/:id", (req, res) => {
-  const workout = workouts.find((w) => w.id === parseInt(req.params.id));
+router.get("/:id", async (req, res) => {
+  const workout = await Workout.findById(req.params.id);
 
   if (!workout) {
     return res.status(404).send("workout niet gevonden");
   }
+
   res.send(workout);
 });
 
 // post workout
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const result = validateWorkout(req.body);
 
   if (result.error) {
     return res.status(400).send(result.error.details[0].message);
   }
 
-  const workout = {
-    id: workouts.length + 1,
+  const workout = new Workout({
     title: req.body.title,
     category: req.body.category,
     durationMinutes: req.body.durationMinutes,
-  };
+  });
 
-  workouts.push(workout);
+  await workout.save();
+
   res.status(201).send(workout);
 });
 
 // update workout
-router.put("/:id", (req, res) => {
-  const workout = workouts.find((w) => w.id === parseInt(req.params.id));
-
-  if (!workout) {
-    return res.status(404).send("workout niet gevonden");
-  }
-
+router.put("/:id", async (req, res) => {
   const result = validateWorkout(req.body);
 
   if (result.error) {
     return res.status(400).send(result.error.details[0].message);
   }
 
-  workout.title = req.body.title;
-  workout.category = req.body.category;
-  workout.durationMinutes = req.body.durationMinutes;
+  const workout = await Workout.findByIdAndUpdate(
+    req.params.id,
+    {
+      title: req.body.title,
+      category: req.body.category,
+      durationMinutes: req.body.durationMinutes,
+    },
+    { new: true },
+  );
+
+  if (!workout) {
+    return res.status(404).send("workout niet gevonden");
+  }
 
   res.send(workout);
 });
 
 // delete workout
-router.delete("/:id", (req, res) => {
-  const workout = workouts.find((w) => w.id === parseInt(req.params.id));
+router.delete("/:id", async (req, res) => {
+  const workout = await Workout.findByIdAndDelete(req.params.id);
 
   if (!workout) {
     return res.status(404).send("workout niet gevonden");
   }
-
-  const index = workouts.indexOf(workout);
-  workouts.splice(index, 1);
 
   res.send(workout);
 });
