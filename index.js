@@ -4,7 +4,6 @@ const express = require("express");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const config = require("config");
-const logger = require("./middleware/logger");
 const home = require("./routes/home");
 const mongoose = require("mongoose");
 
@@ -27,7 +26,6 @@ app.set("views", "./views");
 app.use(express.static("public"));
 
 app.use(express.json());
-app.use(logger);
 console.log("Application Name:", config.get("name"));
 
 // @ts-ignore

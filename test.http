@@ -1,31 +1,41 @@
-## Get all workouts
+### Home page
+GET http://localhost:3000/
+
+
+### Get all workouts
 GET http://localhost:3000/api/workouts
 
-### Get specific workout
-GET http://localhost:3000/api/workouts/6a0440d2bd0b9be4c1c02d68
 
-### Create a workout
+### Create workout
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
 
 {
-    "title": "Push Day",
-    "category": "strength",
-    "durationMinutes": 75
+  "title": "Push Day",
+  "category": "strength",
+  "durationMinutes": 75
 }
 
-### Create invalid workout
+
+### Create cardio workout
 POST http://localhost:3000/api/workouts
 Content-Type: application/json
 
 {
-  "title": "A",
-  "category": "strength",
+  "title": "Morning Cardio",
+  "category": "cardio",
   "durationMinutes": 45
 }
 
+
+### Get specific workout
+# Replace WORKOUT_ID with an _id from a create/get-all response
+GET http://localhost:3000/api/workouts/WORKOUT_ID
+
+
 ### Update workout
-PUT http://localhost:3000/api/workouts/6a0440d2bd0b9be4c1c02d68
+# Replace WORKOUT_ID with an _id from a create/get-all response
+PUT http://localhost:3000/api/workouts/WORKOUT_ID
 Content-Type: application/json
 
 {
@@ -35,20 +45,84 @@ Content-Type: application/json
 }
 
 
-### Update workout with invalid data
-PUT http://localhost:3000/api/workouts/1
+### Delete workout
+# Replace WORKOUT_ID with an _id from a create/get-all response
+DELETE http://localhost:3000/api/workouts/WORKOUT_ID
+
+
+### Get workout with invalid ObjectId
+GET http://localhost:3000/api/workouts/abc
+
+
+### Get workout with valid ObjectId that does not exist
+GET http://localhost:3000/api/workouts/000000000000000000000000
+
+
+### Update workout with invalid ObjectId
+PUT http://localhost:3000/api/workouts/abc
+Content-Type: application/json
+
+{
+  "title": "Updated Push Day",
+  "category": "strength",
+  "durationMinutes": 80
+}
+
+
+### Delete workout with invalid ObjectId
+DELETE http://localhost:3000/api/workouts/abc
+
+
+### Create invalid workout: title too short
+POST http://localhost:3000/api/workouts
 Content-Type: application/json
 
 {
   "title": "A",
   "category": "strength",
-  "durationMinutes": 80
+  "durationMinutes": 45
 }
 
-### Delete workout
-DELETE http://localhost:3000/api/workouts/6a0440cabd0b9be4c1c02d67
+
+### Create invalid workout: invalid category
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+  "title": "Dance Session",
+  "category": "dance",
+  "durationMinutes": 45
+}
 
 
-### Delete workout that does not exist
-DELETE http://localhost:3000/api/workouts/999
+### Create invalid workout: duration too high
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
 
+{
+  "title": "Too Long Workout",
+  "category": "strength",
+  "durationMinutes": 400
+}
+
+
+### Create invalid workout: cardio custom validator
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+  "title": "Very Long Cardio",
+  "category": "cardio",
+  "durationMinutes": 240
+}
+
+
+### Create valid long strength workout
+POST http://localhost:3000/api/workouts
+Content-Type: application/json
+
+{
+  "title": "Long Strength Session",
+  "category": "strength",
+  "durationMinutes": 240
+}
