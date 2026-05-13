@@ -1,7 +1,7 @@
 const express = require("express");
 const Joi = require("joi");
 const Workout = require("../models/workout");
-
+const mongoose = require("mongoose");
 const router = express.Router();
 
 // @ts-ignore
@@ -14,6 +14,11 @@ function validateWorkout(workout) {
 
   return schema.validate(workout);
 }
+// Validate MongoDB ObjectId
+// @ts-ignore
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
 
 // get alle workouts
 router.get("/", async (req, res) => {
@@ -23,6 +28,10 @@ router.get("/", async (req, res) => {
 
 // get workout met id
 router.get("/:id", async (req, res) => {
+  if (!isValidObjectId(req.params.id)) {
+    return res.status(400).send("ongeldige workout id");
+  }
+
   const workout = await Workout.findById(req.params.id);
 
   if (!workout) {
@@ -53,6 +62,9 @@ router.post("/", async (req, res) => {
 
 // update workout
 router.put("/:id", async (req, res) => {
+  if (!isValidObjectId(req.params.id)) {
+    return res.status(400).send("ongeldige workout id");
+  }
   const result = validateWorkout(req.body);
 
   if (result.error) {
@@ -78,6 +90,9 @@ router.put("/:id", async (req, res) => {
 
 // delete workout
 router.delete("/:id", async (req, res) => {
+  if (!isValidObjectId(req.params.id)) {
+    return res.status(400).send("ongeldige workout id");
+  }
   const workout = await Workout.findByIdAndDelete(req.params.id);
 
   if (!workout) {

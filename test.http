@@ -9,7 +9,7 @@ POST http://localhost:3000/api/workouts
 Content-Type: application/json
 
 {
-    "title": "Pull Day",
+    "title": "Push Day",
     "category": "strength",
     "durationMinutes": 75
 }
