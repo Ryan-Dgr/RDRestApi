@@ -1,5 +1,31 @@
 const mongoose = require("mongoose");
 
+const workoutExerciseSchema = new mongoose.Schema({
+  exercise: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Exercise",
+    required: true,
+  },
+  sets: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 20,
+  },
+  reps: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 100,
+  },
+  kg: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 500,
+  },
+});
+
 const workoutSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -28,6 +54,11 @@ const workoutSchema = new mongoose.Schema({
       },
       message: "Cardio workouts cannot be longer than 180 minutes.",
     },
+  },
+
+  exercises: {
+    type: [workoutExerciseSchema],
+    default: [],
   },
 
   createdAt: {
