@@ -7,13 +7,14 @@ const router = express.Router();
 // @ts-ignore
 function validateWorkout(workout) {
   const schema = Joi.object({
-    title: Joi.string().min(3).required(),
+    title: Joi.string().min(3).max(100).required(),
     category: Joi.string().valid("strength", "cardio").required(),
-    durationMinutes: Joi.number().integer().min(1).required(),
+    durationMinutes: Joi.number().integer().min(1).max(300).required(),
   });
 
   return schema.validate(workout);
 }
+
 // Validate MongoDB ObjectId
 // @ts-ignore
 function isValidObjectId(id) {
@@ -78,7 +79,7 @@ router.put("/:id", async (req, res) => {
       category: req.body.category,
       durationMinutes: req.body.durationMinutes,
     },
-    { new: true },
+    { new: true, runValidators: true },
   );
 
   if (!workout) {
