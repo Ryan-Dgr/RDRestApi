@@ -30,7 +30,7 @@ Content-Type: application/json
 
 ### Get current user
 GET http://localhost:3000/api/users/me
-x-auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YTg2MjE3MGZhZmI3YmM0OTAyNmIiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzc4NjkwMTQ2LCJleHAiOjE3Nzg2OTM3NDZ9.yVUIdiL_3GFPVOl41Vwe5lhMrfY22cVq0ffex2yGssg
+x-auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YTg2MjE3MGZhZmI3YmM0OTAyNmIiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg2OTAzMTQsImV4cCI6MTc3ODY5MzkxNH0.lODAc1C7qO5HAiaUJfNKtEfOwXn5W7cwQ6sGjjyMbZg
 
 
 ### Home page
