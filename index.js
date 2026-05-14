@@ -14,6 +14,7 @@ const mongoose = require("mongoose");
 const app = express();
 const workouts = require("./routes/workouts");
 const exercises = require("./routes/exercises");
+const workoutLogs = require("./routes/workoutLogs");
 
 if (!config.get("jwtPrivateKey")) {
   console.error("FATAL ERROR: jwtPrivateKey is not defined.");
@@ -52,6 +53,7 @@ app.use("/api/workouts", workouts);
 app.use("/api/exercises", exercises);
 app.use("/api/users", users);
 app.use("/api/auth", auth);
+app.use("/api/workout-logs", workoutLogs);
 
 app.use(error);
 const port = process.env.PORT || 3000;

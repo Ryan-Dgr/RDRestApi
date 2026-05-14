@@ -3,6 +3,7 @@ const Joi = require("joi");
 const mongoose = require("mongoose");
 const Exercise = require("../models/exercise");
 const Workout = require("../models/workout");
+const WorkoutLog = require("../models/workoutLog");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 const asyncMiddleware = require("../middleware/async");
@@ -131,11 +132,23 @@ router.delete(
       "exercises.exercise": req.params.id,
     });
 
+    const workoutLogUsingExercise = await WorkoutLog.findOne({
+      "exercises.exercise": req.params.id,
+    });
+
     if (workoutUsingExercise) {
       return res
         .status(400)
         .send(
           "exercise kan niet verwijderd worden omdat ze gebruikt wordt in een workout",
+        );
+    }
+
+    if (workoutLogUsingExercise) {
+      return res
+        .status(400)
+        .send(
+          "exercise kan niet verwijderd worden omdat ze gebruikt wordt in een workout log",
         );
     }
 
