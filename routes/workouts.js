@@ -18,9 +18,18 @@ function validateWorkout(workout) {
       .items(
         Joi.object({
           exercise: Joi.string().required(),
-          sets: Joi.number().integer().min(1).max(20).required(),
-          reps: Joi.number().integer().min(1).max(100).required(),
-          kg: Joi.number().min(0).max(500).required(),
+          sets: Joi.array()
+            .items(
+              Joi.object({
+                reps: Joi.number().integer().min(1).max(100).required(),
+                kg: Joi.number().min(0).max(500).required(),
+                type: Joi.string()
+                  .valid("warmup", "normal", "dropset")
+                  .required(),
+              }),
+            )
+            .min(1)
+            .required(),
         }),
       )
       .default([]),
