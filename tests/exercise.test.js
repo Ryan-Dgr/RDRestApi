@@ -1,44 +1,67 @@
 const { describe, test } = require("node:test");
 const assert = require("node:assert");
-const { validate } = require("../models/exercise");
+const Exercise = require("../models/exercise");
 
-describe("Exercise validation", () => {
-  test("accepts a valid exercise", () => {
-    const result = validate({
+describe("Exercise Mongoose validation", () => {
+  test("accepts a valid exercise", async () => {
+    const exercise = new Exercise({
       name: "Bench Press",
       muscleGroup: "chest",
       equipment: "barbell",
     });
 
-    assert.strictEqual(result.error, undefined);
+    await exercise.validate();
+
+    assert.strictEqual(exercise.name, "Bench Press");
   });
 
-  test("rejects an invalid muscle group", () => {
-    const result = validate({
+  test("rejects an invalid muscle group", async () => {
+    const exercise = new Exercise({
       name: "Bench Press",
       muscleGroup: "invalid",
       equipment: "barbell",
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await exercise.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 
-  test("rejects an invalid equipment type", () => {
-    const result = validate({
+  test("rejects an invalid equipment type", async () => {
+    const exercise = new Exercise({
       name: "Bench Press",
       muscleGroup: "chest",
       equipment: "invalid",
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await exercise.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 
-  test("rejects an exercise without a name", () => {
-    const result = validate({
+  test("rejects an exercise without a name", async () => {
+    const exercise = new Exercise({
       muscleGroup: "chest",
       equipment: "barbell",
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await exercise.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 });

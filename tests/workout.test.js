@@ -1,10 +1,10 @@
 const { describe, test } = require("node:test");
 const assert = require("node:assert");
-const { validate } = require("../models/workout");
+const Workout = require("../models/workout");
 
-describe("Workout validation", () => {
-  test("accepts a valid workout", () => {
-    const result = validate({
+describe("Workout Mongoose validation", () => {
+  test("accepts a valid workout", async () => {
+    const workout = new Workout({
       title: "Push Day",
       category: "strength",
       durationMinutes: 60,
@@ -18,43 +18,66 @@ describe("Workout validation", () => {
       ],
     });
 
-    assert.strictEqual(result.error, undefined);
+    await workout.validate();
+
+    assert.strictEqual(workout.title, "Push Day");
   });
 
-  test("rejects a workout without title", () => {
-    const result = validate({
+  test("rejects a workout without title", async () => {
+    const workout = new Workout({
       category: "strength",
       durationMinutes: 60,
       exercises: [],
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await workout.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 
-  test("rejects an invalid category", () => {
-    const result = validate({
+  test("rejects an invalid category", async () => {
+    const workout = new Workout({
       title: "Push Day",
       category: "invalid",
       durationMinutes: 60,
       exercises: [],
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await workout.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 
-  test("rejects duration below minimum", () => {
-    const result = validate({
+  test("rejects duration below minimum", async () => {
+    const workout = new Workout({
       title: "Push Day",
       category: "strength",
       durationMinutes: 0,
       exercises: [],
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await workout.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 
-  test("rejects invalid sets", () => {
-    const result = validate({
+  test("rejects invalid sets", async () => {
+    const workout = new Workout({
       title: "Push Day",
       category: "strength",
       durationMinutes: 60,
@@ -68,11 +91,18 @@ describe("Workout validation", () => {
       ],
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await workout.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 
-  test("rejects invalid reps", () => {
-    const result = validate({
+  test("rejects invalid reps", async () => {
+    const workout = new Workout({
       title: "Push Day",
       category: "strength",
       durationMinutes: 60,
@@ -86,11 +116,18 @@ describe("Workout validation", () => {
       ],
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await workout.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 
-  test("rejects invalid kg", () => {
-    const result = validate({
+  test("rejects invalid kg", async () => {
+    const workout = new Workout({
       title: "Push Day",
       category: "strength",
       durationMinutes: 60,
@@ -104,6 +141,13 @@ describe("Workout validation", () => {
       ],
     });
 
-    assert.ok(result.error);
+    await assert.rejects(
+      async () => {
+        await workout.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
   });
 });
