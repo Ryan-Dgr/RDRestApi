@@ -1,17 +1,6 @@
 const mongoose = require("mongoose");
 
-const workoutExerciseSchema = new mongoose.Schema({
-  exercise: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Exercise",
-    required: true,
-  },
-  sets: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 20,
-  },
+const workoutSetSchema = new mongoose.Schema({
   reps: {
     type: Number,
     required: true,
@@ -23,6 +12,29 @@ const workoutExerciseSchema = new mongoose.Schema({
     required: true,
     min: 0,
     max: 500,
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ["warmup", "normal", "dropset"],
+  },
+});
+
+const workoutExerciseSchema = new mongoose.Schema({
+  exercise: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Exercise",
+    required: true,
+  },
+  sets: {
+    type: [workoutSetSchema],
+    required: true,
+    validate: {
+      validator: function (sets) {
+        return sets.length > 0;
+      },
+      message: "A workout exercise must have at least one set.",
+    },
   },
 });
 
