@@ -21,6 +21,7 @@ describe("User validation", () => {
     });
 
     assert.ok(result.error);
+    assert.strictEqual(result.error.details[0].path[0], "email");
   });
 
   test("rejects a password that is too short", () => {
@@ -31,5 +32,6 @@ describe("User validation", () => {
     });
 
     assert.ok(result.error);
+    assert.strictEqual(result.error.details[0].path[0], "password");
   });
 });
