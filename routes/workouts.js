@@ -45,6 +45,7 @@ function isValidObjectId(id) {
 function hasValidExerciseIds(exercises = []) {
   return exercises.every((item) => isValidObjectId(item.exercise));
 }
+
 function validateWorkoutExercise(workoutExercise) {
   const schema = Joi.object({
     exercise: Joi.string().required(),
@@ -61,6 +62,16 @@ function validateWorkoutExercise(workoutExercise) {
   });
 
   return schema.validate(workoutExercise);
+}
+
+function validateWorkoutSet(workoutSet) {
+  const schema = Joi.object({
+    reps: Joi.number().integer().min(1).max(100).required(),
+    kg: Joi.number().min(0).max(500).required(),
+    type: Joi.string().valid("warmup", "normal", "dropset").required(),
+  });
+
+  return schema.validate(workoutSet);
 }
 
 async function exercisesExist(exercises = []) {
@@ -172,6 +183,45 @@ router.post(
       exercise: req.body.exercise,
       sets: req.body.sets,
     });
+
+    await workout.save();
+
+    res.status(201).send(workout);
+  }),
+);
+
+// add set to workout exercise
+router.post(
+  "/:workoutId/exercises/:exerciseEntryId/sets",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.workoutId)) {
+      return res.status(400).send("ongeldige workout id");
+    }
+
+    if (!isValidObjectId(req.params.exerciseEntryId)) {
+      return res.status(400).send("ongeldige workout exercise id");
+    }
+
+    const result = validateWorkoutSet(req.body);
+
+    if (result.error) {
+      return res.status(400).send(result.error.details[0].message);
+    }
+
+    const workout = await Workout.findById(req.params.workoutId);
+
+    if (!workout) {
+      return res.status(404).send("workout niet gevonden");
+    }
+
+    const workoutExercise = workout.exercises.id(req.params.exerciseEntryId);
+
+    if (!workoutExercise) {
+      return res.status(404).send("exercise niet gevonden in workout");
+    }
+
+    workoutExercise.sets.push(req.body);
 
     await workout.save();
 

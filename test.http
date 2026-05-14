@@ -3,9 +3,12 @@
 @password = password123
 @userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg3ODQ4MTUsImV4cCI6MTc3ODc4ODQxNX0.CK9jQ9zzDOjRsBNr40JQNSikYytj67OLLpjH1_vtcOs
 @adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg3ODA3NzAsImV4cCI6MTc3ODc4NDM3MH0.WWulY3mon0ZqO9nOF5XrUiBa3HCE5xyueqQF-jYOg4Q
-@exerciseId = 6a0456b1d0d4e48ffe7650b5
-@unusedExerciseId = 6a04ab22eb1753653bcc64ac
+@exerciseId = 6a061a40215e9406e8081a68
+@unusedExerciseId = 6a0456b1d0d4e48ffe7650b5
 @workoutId = 6a0440d2bd0b9be4c1c02d68
+
+@exerciseEntryId = 6a061a40215e9406e8081a68
+
 
 ### Home page
 GET {{baseUrl}}/
@@ -67,6 +70,21 @@ x-auth-token: {{userToken}}
     }
   ]
 }
+
+### Add set to workout exercise
+POST {{baseUrl}}/api/workouts/{{workoutId}}/exercises/{{exerciseEntryId}}/sets
+Content-Type: application/json
+x-auth-token: {{userToken}}
+
+{
+  "reps": 8,
+  "kg": 90,
+  "type": "normal"
+}
+
+### Get workout by id
+GET {{baseUrl}}/api/workouts/{{workoutId}}
+
 
 
 ### Get all exercises
