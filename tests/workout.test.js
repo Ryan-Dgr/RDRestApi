@@ -11,9 +11,13 @@ describe("Workout Mongoose validation", () => {
       exercises: [
         {
           exercise: "507f1f77bcf86cd799439011",
-          sets: 4,
-          reps: 10,
-          kg: 80,
+          sets: [
+            {
+              reps: 10,
+              kg: 80,
+              type: "normal",
+            },
+          ],
         },
       ],
     });
@@ -76,7 +80,7 @@ describe("Workout Mongoose validation", () => {
     );
   });
 
-  test("rejects invalid sets", async () => {
+  test("rejects workout exercise without sets", async () => {
     const workout = new Workout({
       title: "Push Day",
       category: "strength",
@@ -84,9 +88,7 @@ describe("Workout Mongoose validation", () => {
       exercises: [
         {
           exercise: "507f1f77bcf86cd799439011",
-          sets: 0,
-          reps: 10,
-          kg: 80,
+          sets: [],
         },
       ],
     });
@@ -109,9 +111,13 @@ describe("Workout Mongoose validation", () => {
       exercises: [
         {
           exercise: "507f1f77bcf86cd799439011",
-          sets: 4,
-          reps: 0,
-          kg: 80,
+          sets: [
+            {
+              reps: 0,
+              kg: 80,
+              type: "normal",
+            },
+          ],
         },
       ],
     });
@@ -134,9 +140,42 @@ describe("Workout Mongoose validation", () => {
       exercises: [
         {
           exercise: "507f1f77bcf86cd799439011",
-          sets: 4,
-          reps: 10,
-          kg: -5,
+          sets: [
+            {
+              reps: 10,
+              kg: -5,
+              type: "normal",
+            },
+          ],
+        },
+      ],
+    });
+
+    await assert.rejects(
+      async () => {
+        await workout.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
+  });
+
+  test("rejects invalid set type", async () => {
+    const workout = new Workout({
+      title: "Push Day",
+      category: "strength",
+      durationMinutes: 60,
+      exercises: [
+        {
+          exercise: "507f1f77bcf86cd799439011",
+          sets: [
+            {
+              reps: 10,
+              kg: 80,
+              type: "heavy",
+            },
+          ],
         },
       ],
     });

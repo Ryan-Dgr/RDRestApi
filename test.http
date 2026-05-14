@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:3000
 @userEmail = test20260513184730@example.com
 @password = password123
-@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzc4NjkwODUwLCJleHAiOjE3Nzg2OTQ0NTB9.95Urr2qyYlj_T84AImVSRasqa9wcbvmExuwar8atqjg
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg2OTA4ODEsImV4cCI6MTc3ODY5NDQ4MX0.hcS_kVYspiplNihjmNfjRkyH2LbqLmVk80kiw8ZrjSA
-@exerciseId = 6a04ab22eb1753653bcc64ab
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg3ODA3NzAsImV4cCI6MTc3ODc4NDM3MH0.WWulY3mon0ZqO9nOF5XrUiBa3HCE5xyueqQF-jYOg4Q
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YWIyMmViMTc1MzY1M2JjYzY0YWEiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3Nzg3ODA3NzAsImV4cCI6MTc3ODc4NDM3MH0.WWulY3mon0ZqO9nOF5XrUiBa3HCE5xyueqQF-jYOg4Q
+@exerciseId = 6a0456b1d0d4e48ffe7650b4
 @unusedExerciseId = 6a04ab22eb1753653bcc64ac
 @workoutId = 6a04ab22eb1753653bcc64ad
 
@@ -123,9 +123,23 @@ x-auth-token: {{userToken}}
   "exercises": [
     {
       "exercise": "{{exerciseId}}",
-      "sets": 4,
-      "reps": 8,
-      "kg": 80
+      "sets": [
+        {
+          "reps": 10,
+          "kg": 60,
+          "type": "warmup"
+        },
+        {
+          "reps": 8,
+          "kg": 80,
+          "type": "normal"
+        },
+        {
+          "reps": 6,
+          "kg": 70,
+          "type": "dropset"
+        }
+      ]
     }
   ]
 }
@@ -147,9 +161,18 @@ x-auth-token: {{userToken}}
   "exercises": [
     {
       "exercise": "{{exerciseId}}",
-      "sets": 5,
-      "reps": 5,
-      "kg": 85
+      "sets": [
+        {
+          "reps": 8,
+          "kg": 65,
+          "type": "warmup"
+        },
+        {
+          "reps": 5,
+          "kg": 85,
+          "type": "normal"
+        }
+      ]
     }
   ]
 }
@@ -214,9 +237,13 @@ x-auth-token: {{userToken}}
   "exercises": [
     {
       "exercise": "abc",
-      "sets": 4,
-      "reps": 8,
-      "kg": 80
+      "sets": [
+        {
+          "reps": 8,
+          "kg": 80,
+          "type": "normal"
+        }
+      ]
     }
   ]
 }
@@ -234,9 +261,13 @@ x-auth-token: {{userToken}}
   "exercises": [
     {
       "exercise": "000000000000000000000000",
-      "sets": 4,
-      "reps": 8,
-      "kg": 80
+      "sets": [
+        {
+          "reps": 8,
+          "kg": 80,
+          "type": "normal"
+        }
+      ]
     }
   ]
 }
