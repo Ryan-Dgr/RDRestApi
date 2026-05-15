@@ -1,14 +1,14 @@
 @baseUrl = http://localhost:3000
 
-# Vul deze na requests telkens zelf aan met ids/tokens uit responses.
-@userId = 6a0622684c6af0fc1a1559fe
+# Replace these values while testing.
+@userId = replace-with-user-id
 @adminUserId = replace-with-admin-user-id
 
-@userEmail = ryan.user@gmail.com
-@adminEmail = admin@example.com
+@userEmail = normal.user@example.com
+@adminEmail = admin.user@example.com
 @password = password123
 
-@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA2MjI2ODRjNmFmMGZjMWExNTU5ZmUiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzc4Nzg3MDY1LCJleHAiOjE3Nzg3OTA2NjV9.igp1JTfLeZnXYqEmT2V-cjai0ZNLOxbOE4BHxgT7fVo
+@userToken = replace-with-user-token
 @adminToken = replace-with-admin-token
 
 @exerciseId = replace-with-exercise-id
@@ -23,14 +23,31 @@
 ### Home page
 GET {{baseUrl}}/
 
+
+### Health check
+GET {{baseUrl}}/health
+
+
 ### Register normal user
 POST {{baseUrl}}/api/users
 Content-Type: application/json
 
 {
-  "name": "Ryan User",
+  "name": "Normal User",
   "email": "{{userEmail}}",
   "password": "{{password}}"
+}
+
+
+### Register user cannot self-elevate to admin
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "name": "Bad Admin",
+  "email": "bad.admin@example.com",
+  "password": "{{password}}",
+  "isAdmin": true
 }
 
 
@@ -62,7 +79,7 @@ Content-Type: application/json
 
 ### Make user admin
 # Requires an existing admin token.
-# Use MongoDB Compass once to set one user isAdmin=true, then login and paste that token above.
+# For the first admin, set isAdmin=true once in MongoDB Compass, then login and paste the token above.
 PATCH {{baseUrl}}/api/users/{{adminUserId}}/role
 Content-Type: application/json
 x-auth-token: {{adminToken}}
@@ -426,13 +443,7 @@ DELETE {{baseUrl}}/api/exercises/{{unusedExerciseId}}
 x-auth-token: {{adminToken}}
 
 
-### Delete exercise used in workout should fail
-DELETE {{baseUrl}}/api/exercises/{{exerciseId}}
-x-auth-token: {{adminToken}}
-
-
-### Delete exercise used in workout log should fail
-# This only reaches the workout-log check if the exercise is not also used in a workout.
+### Delete exercise used in workout or workout log should fail
 DELETE {{baseUrl}}/api/exercises/{{exerciseId}}
 x-auth-token: {{adminToken}}
 
@@ -452,6 +463,6 @@ DELETE {{baseUrl}}/api/workout-logs/{{workoutLogId}}
 x-auth-token: {{userToken}}
 
 
-### Delete workout with admin
+### Delete workout with admin after workout log is removed
 DELETE {{baseUrl}}/api/workouts/{{workoutId}}
 x-auth-token: {{adminToken}}

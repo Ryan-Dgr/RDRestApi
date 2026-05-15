@@ -31,6 +31,14 @@ if (app.get("env") === "development") {
   console.log("Morgan enabled...");
 }
 
+app.get("/health", (req, res) => {
+  res.send({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use("/", home);
 app.use("/api/workouts", workouts);
 app.use("/api/exercises", exercises);
