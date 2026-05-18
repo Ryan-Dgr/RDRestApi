@@ -91,6 +91,10 @@ router.post(
       return res.status(400).send("workout bestaat niet");
     }
 
+    if (workout.exercises.length === 0) {
+      return res.status(400).send("workout heeft geen oefeningen");
+    }
+
     const log = new WorkoutLog({
       user: req.user._id,
       workout: req.body.workout,

@@ -1,23 +1,26 @@
 @baseUrl = http://localhost:3000
 
-# Replace these values while testing.
-@userId = replace-with-user-id
-@adminUserId = replace-with-admin-user-id
-
-@userEmail = normal.user@example.com
-@adminEmail = admin.user@example.com
+# Vul deze waarden aan terwijl je test.
+@userEmail = ryan.user@example.com
+@adminEmail = ryan@example.com
 @password = password123
 
-@userToken = replace-with-user-token
-@adminToken = replace-with-admin-token
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTBiNzEwZmNiNjE0ZGJiMjIwMzQzZjUiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzc5MTM0ODYzLCJleHAiOjE3NzkxMzg0NjN9._XtGbe1fdHrsymlayrtrw-rXiHXYrIPP5wB5smC25cY
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTA0YTg2MjE3MGZhZmI3YmM0OTAyNmIiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3NzkxMzQ4OTgsImV4cCI6MTc3OTEzODQ5OH0.oOW58PdLZCWvzUuFvViNf036bX-xlMD7vblNnmB4UV8
 
-@exerciseId = replace-with-exercise-id
+@userId = 6a0b710fcb614dbb220343f5
+@adminUserId = 6a04a862170fafb7bc49026b
+
+@exerciseId = 6a0456b1d0d4e48ffe7650b4
+@secondExerciseId = 6a0456b1d0d4e48ffe7650b5
 @unusedExerciseId = replace-with-unused-exercise-id
 
-@workoutId = replace-with-workout-id
-@exerciseEntryId = replace-with-workout-exercise-entry-id
+@workoutId = 6a0b74e6cddaf7ec126214a4
+@workoutLogId = 6a0b755ecddaf7ec126214a5
 
-@workoutLogId = replace-with-workout-log-id
+# Dit is de _id van een exercise-entry binnen workoutLog.exercises.
+# Dit is dus niet hetzelfde als @exerciseId.
+@workoutLogExerciseEntryId = 6a0b755ecddaf7ec126214a6
 
 
 ### Home page
@@ -39,19 +42,8 @@ Content-Type: application/json
 }
 
 
-### Register user cannot self-elevate to admin
-POST {{baseUrl}}/api/users
-Content-Type: application/json
-
-{
-  "name": "Bad Admin",
-  "email": "bad.admin@example.com",
-  "password": "{{password}}",
-  "isAdmin": true
-}
-
-
 ### Login normal user
+# Kopieer de token uit de response naar @userToken.
 POST {{baseUrl}}/api/auth
 Content-Type: application/json
 
@@ -66,7 +58,7 @@ GET {{baseUrl}}/api/users/me
 x-auth-token: {{userToken}}
 
 
-### Register admin user candidate
+### Register admin user
 POST {{baseUrl}}/api/users
 Content-Type: application/json
 
@@ -78,8 +70,8 @@ Content-Type: application/json
 
 
 ### Make user admin
-# Requires an existing admin token.
-# For the first admin, set isAdmin=true once in MongoDB Compass, then login and paste the token above.
+# Voor de eerste admin: zet isAdmin=true eenmalig via MongoDB Compass.
+# Daarna kan je met een admin token andere users admin maken.
 PATCH {{baseUrl}}/api/users/{{adminUserId}}/role
 Content-Type: application/json
 x-auth-token: {{adminToken}}
@@ -90,6 +82,7 @@ x-auth-token: {{adminToken}}
 
 
 ### Login admin user
+# Kopieer de token uit de response naar @adminToken.
 POST {{baseUrl}}/api/auth
 Content-Type: application/json
 
@@ -99,43 +92,21 @@ Content-Type: application/json
 }
 
 
-### Login with wrong password
-POST {{baseUrl}}/api/auth
-Content-Type: application/json
-
-{
-  "email": "{{userEmail}}",
-  "password": "wrongpassword"
-}
-
-
 ### Get all exercises
 GET {{baseUrl}}/api/exercises
 
 
-### Create exercise
+### Create exercise: Bench Press
+# Kopieer _id uit de response naar @exerciseId.
 POST {{baseUrl}}/api/exercises
 Content-Type: application/json
 x-auth-token: {{userToken}}
 
 {
-  "name": "Bench Press",
+  "name": "Bicep Curl",
   "muscleGroup": "chest",
   "equipment": "barbell"
 }
-
-
-### Create unused exercise
-POST {{baseUrl}}/api/exercises
-Content-Type: application/json
-x-auth-token: {{userToken}}
-
-{
-  "name": "Cable Row",
-  "muscleGroup": "back",
-  "equipment": "cable"
-}
-
 
 ### Get exercise by id
 GET {{baseUrl}}/api/exercises/{{exerciseId}}
@@ -147,105 +118,35 @@ Content-Type: application/json
 x-auth-token: {{userToken}}
 
 {
-  "name": "Bench Press Updated",
+  "name": "Bench Press",
   "muscleGroup": "chest",
   "equipment": "barbell"
 }
-
-
-### Invalid exercise body
-POST {{baseUrl}}/api/exercises
-Content-Type: application/json
-x-auth-token: {{userToken}}
-
-{
-  "name": "X",
-  "muscleGroup": "invalid",
-  "equipment": "barbell"
-}
-
-
-### Invalid exercise id
-GET {{baseUrl}}/api/exercises/abc
 
 
 ### Get all workouts
 GET {{baseUrl}}/api/workouts
 
 
-### Create workout without token should fail
-POST {{baseUrl}}/api/workouts
-Content-Type: application/json
-
-{
-  "title": "No Token Workout",
-  "category": "strength",
-  "durationMinutes": 45,
-  "exercises": []
-}
-
-
 ### Create workout
+# Workout bevat alleen exercise ids, geen sets.
+# Kopieer _id uit de response naar @workoutId.
 POST {{baseUrl}}/api/workouts
 Content-Type: application/json
 x-auth-token: {{userToken}}
 
 {
-  "title": "Push Day",
+  "title": "Arms Workout",
   "category": "strength",
   "durationMinutes": 75,
   "exercises": [
-    {
-      "exercise": "{{exerciseId}}",
-      "sets": [
-        {
-          "reps": 10,
-          "kg": 60,
-          "type": "warmup"
-        },
-        {
-          "reps": 8,
-          "kg": 80,
-          "type": "normal"
-        }
-      ]
-    }
+    "{{exerciseId}}",
+    "{{secondExerciseId}}"
   ]
 }
-
 
 ### Get workout by id
 GET {{baseUrl}}/api/workouts/{{workoutId}}
-
-
-### Add exercise to workout
-POST {{baseUrl}}/api/workouts/{{workoutId}}/exercises
-Content-Type: application/json
-x-auth-token: {{userToken}}
-
-{
-  "exercise": "{{exerciseId}}",
-  "sets": [
-    {
-      "reps": 10,
-      "kg": 60,
-      "type": "warmup"
-    }
-  ]
-}
-
-
-### Add set to workout exercise
-# exerciseEntryId is the _id inside workout.exercises, not the normal exerciseId.
-POST {{baseUrl}}/api/workouts/{{workoutId}}/exercises/{{exerciseEntryId}}/sets
-Content-Type: application/json
-x-auth-token: {{userToken}}
-
-{
-  "reps": 6,
-  "kg": 90,
-  "type": "normal"
-}
 
 
 ### Update workout
@@ -254,128 +155,33 @@ Content-Type: application/json
 x-auth-token: {{userToken}}
 
 {
-  "title": "Updated Push Day",
+  "title": "Push Day Updated",
   "category": "strength",
   "durationMinutes": 80,
   "exercises": [
-    {
-      "exercise": "{{exerciseId}}",
-      "sets": [
-        {
-          "reps": 8,
-          "kg": 65,
-          "type": "warmup"
-        },
-        {
-          "reps": 5,
-          "kg": 85,
-          "type": "normal"
-        }
-      ]
-    }
+    "{{exerciseId}}",
+    "{{secondExerciseId}}"
   ]
 }
 
 
-### Invalid workout body
-POST {{baseUrl}}/api/workouts
-Content-Type: application/json
-x-auth-token: {{userToken}}
-
-{
-  "title": "A",
-  "category": "strength",
-  "durationMinutes": 45,
-  "exercises": []
-}
-
-
-### Workout with invalid exercise id format
-POST {{baseUrl}}/api/workouts
-Content-Type: application/json
-x-auth-token: {{userToken}}
-
-{
-  "title": "Invalid Exercise Reference",
-  "category": "strength",
-  "durationMinutes": 75,
-  "exercises": [
-    {
-      "exercise": "abc",
-      "sets": [
-        {
-          "reps": 8,
-          "kg": 80,
-          "type": "normal"
-        }
-      ]
-    }
-  ]
-}
-
-
-### Workout with non-existing exercise
-POST {{baseUrl}}/api/workouts
-Content-Type: application/json
-x-auth-token: {{userToken}}
-
-{
-  "title": "Missing Exercise Reference",
-  "category": "strength",
-  "durationMinutes": 75,
-  "exercises": [
-    {
-      "exercise": "000000000000000000000000",
-      "sets": [
-        {
-          "reps": 8,
-          "kg": 80,
-          "type": "normal"
-        }
-      ]
-    }
-  ]
-}
-
-
-### Invalid workout id
-GET {{baseUrl}}/api/workouts/abc
-
-
-### Get non-existing workout
-GET {{baseUrl}}/api/workouts/000000000000000000000000
-
-
-### Get all workout logs
+### Get current user's workout logs
 GET {{baseUrl}}/api/workout-logs
 x-auth-token: {{userToken}}
 
 
-### Create workout log
+### Start workout log
+# Hiermee start je een workout.
+# De server kopieert de exercises uit de workout naar de workout log met sets: [].
+# Kopieer _id uit de response naar @workoutLogId.
+# Kopieer exercises[0]._id uit de response naar @workoutLogExerciseEntryId.
 POST {{baseUrl}}/api/workout-logs
 Content-Type: application/json
 x-auth-token: {{userToken}}
 
 {
   "workout": "{{workoutId}}",
-  "notes": "Strong push session.",
-  "exercises": [
-    {
-      "exercise": "{{exerciseId}}",
-      "sets": [
-        {
-          "reps": 10,
-          "kg": 60,
-          "type": "warmup"
-        },
-        {
-          "reps": 8,
-          "kg": 80,
-          "type": "normal"
-        }
-      ]
-    }
-  ]
+  "notes": "starten met back workout"
 }
 
 
@@ -384,57 +190,33 @@ GET {{baseUrl}}/api/workout-logs/{{workoutLogId}}
 x-auth-token: {{userToken}}
 
 
-### Update workout log
-PUT {{baseUrl}}/api/workout-logs/{{workoutLogId}}
+### Add set to workout log exercise
+# Gebruik hier de _id uit workoutLog.exercises[0]._id.
+POST {{baseUrl}}/api/workout-logs/{{workoutLogId}}/exercises/{{workoutLogExerciseEntryId}}/sets
 Content-Type: application/json
 x-auth-token: {{userToken}}
 
 {
-  "workout": "{{workoutId}}",
-  "notes": "Updated push session.",
-  "exercises": [
-    {
-      "exercise": "{{exerciseId}}",
-      "sets": [
-        {
-          "reps": 8,
-          "kg": 65,
-          "type": "warmup"
-        },
-        {
-          "reps": 6,
-          "kg": 85,
-          "type": "normal"
-        },
-        {
-          "reps": 6,
-          "kg": 70,
-          "type": "dropset"
-        }
-      ]
-    }
-  ]
+  "reps": 8,
+  "kg": 90,
+  "type": "normal"
 }
 
 
-### Invalid workout log id
-GET {{baseUrl}}/api/workout-logs/abc
-x-auth-token: {{userToken}}
-
-
-### Invalid workout log body
-POST {{baseUrl}}/api/workout-logs
+### Add another set to workout log exercise
+POST {{baseUrl}}/api/workout-logs/{{workoutLogId}}/exercises/{{workoutLogExerciseEntryId}}/sets
 Content-Type: application/json
 x-auth-token: {{userToken}}
 
 {
-  "workout": "{{workoutId}}",
-  "notes": "Missing exercises"
+  "reps": 8,
+  "kg": 80,
+  "type": "normal"
 }
 
 
-### Delete exercise with normal user should fail
-DELETE {{baseUrl}}/api/exercises/{{unusedExerciseId}}
+### Get updated workout log
+GET {{baseUrl}}/api/workout-logs/{{workoutLogId}}
 x-auth-token: {{userToken}}
 
 
@@ -443,26 +225,12 @@ DELETE {{baseUrl}}/api/exercises/{{unusedExerciseId}}
 x-auth-token: {{adminToken}}
 
 
-### Delete exercise used in workout or workout log should fail
-DELETE {{baseUrl}}/api/exercises/{{exerciseId}}
-x-auth-token: {{adminToken}}
-
-
-### Delete workout with normal user should fail
-DELETE {{baseUrl}}/api/workouts/{{workoutId}}
-x-auth-token: {{userToken}}
-
-
-### Delete workout used in workout log with admin should fail
-DELETE {{baseUrl}}/api/workouts/{{workoutId}}
-x-auth-token: {{adminToken}}
-
-
 ### Delete workout log
 DELETE {{baseUrl}}/api/workout-logs/{{workoutLogId}}
 x-auth-token: {{userToken}}
 
 
-### Delete workout with admin after workout log is removed
+### Delete workout with admin
+# Dit lukt pas nadat de workout log verwijderd is.
 DELETE {{baseUrl}}/api/workouts/{{workoutId}}
 x-auth-token: {{adminToken}}

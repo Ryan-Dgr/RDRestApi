@@ -129,7 +129,7 @@ router.delete(
     }
 
     const workoutUsingExercise = await Workout.findOne({
-      "exercises.exercise": req.params.id,
+      exercises: req.params.id,
     });
 
     const workoutLogUsingExercise = await WorkoutLog.findOne({
