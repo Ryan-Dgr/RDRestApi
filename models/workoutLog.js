@@ -28,13 +28,7 @@ const workoutLogExerciseSchema = new mongoose.Schema({
   },
   sets: {
     type: [workoutLogSetSchema],
-    required: true,
-    validate: {
-      validator: function (sets) {
-        return sets.length > 0;
-      },
-      message: "A logged exercise must have at least one set.",
-    },
+    default: [],
   },
 });
 
