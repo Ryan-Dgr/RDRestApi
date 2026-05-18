@@ -18,6 +18,16 @@ function validateWorkoutLog(workoutLog) {
   return schema.validate(workoutLog);
 }
 
+function validateWorkoutLogSet(workoutLogSet) {
+  const schema = Joi.object({
+    reps: Joi.number().integer().min(1).max(100).required(),
+    kg: Joi.number().min(0).max(500).required(),
+    type: Joi.string().valid("warmup", "normal", "dropset").required(),
+  });
+
+  return schema.validate(workoutLogSet);
+}
+
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
@@ -91,6 +101,48 @@ router.post(
         sets: [],
       })),
     });
+
+    await log.save();
+
+    res.status(201).send(log);
+  }),
+);
+
+// sets toevoegen
+router.post(
+  "/:logId/exercises/:exerciseEntryId/sets",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.logId)) {
+      return res.status(400).send("ongeldige workout log id");
+    }
+
+    if (!isValidObjectId(req.params.exerciseEntryId)) {
+      return res.status(400).send("ongeldige workout log exercise id");
+    }
+
+    const result = validateWorkoutLogSet(req.body);
+
+    if (result.error) {
+      return res.status(400).send(result.error.details[0].message);
+    }
+
+    const log = await WorkoutLog.findOne({
+      _id: req.params.logId,
+      user: req.user._id,
+    });
+
+    if (!log) {
+      return res.status(404).send("workout log niet gevonden");
+    }
+
+    const workoutLogExercise = log.exercises.id(req.params.exerciseEntryId);
+
+    if (!workoutLogExercise) {
+      return res.status(404).send("exercise niet gevonden in workout log");
+    }
+
+    workoutLogExercise.sets.push(req.body);
 
     await log.save();
 
