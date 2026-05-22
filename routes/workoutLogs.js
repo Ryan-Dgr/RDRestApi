@@ -154,6 +154,60 @@ router.post(
   }),
 );
 
+// set aanpassen
+router.put(
+  "/:logId/exercises/:exerciseEntryId/sets/:setId",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.logId)) {
+      return res.status(400).send("ongeldige workout log id");
+    }
+
+    if (!isValidObjectId(req.params.exerciseEntryId)) {
+      return res.status(400).send("ongeldige workout log exercise id");
+    }
+
+    if (!isValidObjectId(req.params.setId)) {
+      return res.status(400).send("ongeldige set id");
+    }
+
+    const result = validateWorkoutLogSet(req.body);
+
+    if (result.error) {
+      return res.status(400).send(result.error.details[0].message);
+    }
+
+    const log = await WorkoutLog.findOne({
+      _id: req.params.logId,
+      user: req.user._id,
+    });
+
+    if (!log) {
+      return res.status(404).send("workout log niet gevonden");
+    }
+
+    const workoutLogExercise = log.exercises.id(req.params.exerciseEntryId);
+
+    if (!workoutLogExercise) {
+      return res.status(404).send("exercise niet gevonden in workout log");
+    }
+
+    const workoutLogExerciseSet = workoutLogExercise.sets.id(req.params.setId);
+
+    if (!workoutLogExerciseSet) {
+      return res.status(404).send("set niet gevonden in exercise");
+    }
+
+    workoutLogExerciseSet.reps = req.body.reps;
+    workoutLogExerciseSet.kg = req.body.kg;
+    workoutLogExerciseSet.type = req.body.type;
+
+    await log.save();
+
+    res.send(log);
+  }),
+);
+
 // delete workout log
 router.delete(
   "/:id",
