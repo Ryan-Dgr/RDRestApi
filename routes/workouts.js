@@ -141,6 +141,43 @@ router.put(
   }),
 );
 
+//verwijder oefening uit workout
+router.delete(
+  "/:workoutId/exercises/:exerciseId",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.workoutId)) {
+      return res.status(400).send("ongeldige workout id");
+    }
+
+    if (!isValidObjectId(req.params.exerciseId)) {
+      return res.status(400).send("ongeldige exercise id");
+    }
+
+    const workout = await Workout.findById(req.params.workoutId);
+
+    if (!workout) {
+      return res.status(404).send("workout niet gevonden");
+    }
+
+    const exerciseInWorkout = workout.exercises.some(
+      (exerciseId) => exerciseId.toString() === req.params.exerciseId,
+    );
+
+    if (!exerciseInWorkout) {
+      return res.status(404).send("oefening niet gevonden in workout");
+    }
+
+    workout.exercises = workout.exercises.filter(
+      (exerciseId) => exerciseId.toString() !== req.params.exerciseId,
+    );
+
+    await workout.save();
+
+    res.send(workout);
+  }),
+);
+
 // delete workout
 router.delete(
   "/:id",
