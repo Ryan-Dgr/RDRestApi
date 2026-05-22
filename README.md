@@ -12,7 +12,7 @@ Gebruikers kunnen workouts samenstellen op basis van herbruikbare oefeningen. Wa
 ## Links
 
 - Lokale API URL: `http://localhost:3000`
-- Azure API URL: `workout-api-ryan-ace2grfeheaxbtf7.francecentral-01.azurewebsites.net`
+- Azure API URL: `https://workout-api-ryan-ace2grfeheaxbtf7.francecentral-01.azurewebsites.net/`
 - Health check: `/health`
 - Manuele requests: `test.http`
 
