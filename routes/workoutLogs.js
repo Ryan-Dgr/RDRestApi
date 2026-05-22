@@ -208,6 +208,52 @@ router.put(
   }),
 );
 
+// set verwijderen
+router.delete(
+  "/:logId/exercises/:exerciseEntryId/sets/:setId",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    if (!isValidObjectId(req.params.logId)) {
+      return res.status(400).send("ongeldige workout log id");
+    }
+
+    if (!isValidObjectId(req.params.exerciseEntryId)) {
+      return res.status(400).send("ongeldige workout log exercise id");
+    }
+
+    if (!isValidObjectId(req.params.setId)) {
+      return res.status(400).send("ongeldige set id");
+    }
+
+    const log = await WorkoutLog.findOne({
+      _id: req.params.logId,
+      user: req.user._id,
+    });
+
+    if (!log) {
+      return res.status(404).send("workout log niet gevonden");
+    }
+
+    const workoutLogExercise = log.exercises.id(req.params.exerciseEntryId);
+
+    if (!workoutLogExercise) {
+      return res.status(404).send("exercise niet gevonden in workout log");
+    }
+
+    const workoutLogExerciseSet = workoutLogExercise.sets.id(req.params.setId);
+
+    if (!workoutLogExerciseSet) {
+      return res.status(404).send("set niet gevonden in exercise");
+    }
+
+    workoutLogExercise.sets.pull(req.params.setId);
+
+    await log.save();
+
+    res.send(log);
+  }),
+);
+
 // delete workout log
 router.delete(
   "/:id",
