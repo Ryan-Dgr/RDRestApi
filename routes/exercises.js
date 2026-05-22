@@ -66,6 +66,7 @@ router.get(
 router.post(
   "/",
   auth,
+  admin,
   asyncMiddleware(async (req, res) => {
     const result = validateExercise(req.body);
 
@@ -89,6 +90,7 @@ router.post(
 router.put(
   "/:id",
   auth,
+  admin,
   asyncMiddleware(async (req, res) => {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).send("ongeldige exercise id");
