@@ -15,10 +15,11 @@ let userToken;
 let adminToken;
 let userId;
 let exerciseId;
+let secondExerciseId;
 let unusedExerciseId;
 let workoutId;
-let exerciseEntryId;
 let workoutLogId;
+let workoutLogExerciseEntryId;
 const unique = Date.now();
 const normalEmail = `normal.${unique}@integrationtest.com`;
 const adminEmail = `admin.${unique}@integrationtest.com`;
@@ -141,11 +142,27 @@ describe("API integration", { concurrency: false }, () => {
     assert.ok(adminToken);
   });
 
-  test("creates an exercise", async () => {
+  test("does not allow a normal user to create an exercise", async () => {
     const response = await request("/api/exercises", {
       method: "POST",
       headers: {
         "x-auth-token": userToken,
+      },
+      body: JSON.stringify({
+        name: "Bench Press",
+        muscleGroup: "chest",
+        equipment: "barbell",
+      }),
+    });
+
+    assert.strictEqual(response.status, 403);
+  });
+
+  test("creates an exercise with admin token", async () => {
+    const response = await request("/api/exercises", {
+      method: "POST",
+      headers: {
+        "x-auth-token": adminToken,
       },
       body: JSON.stringify({
         name: "Bench Press",
@@ -162,11 +179,11 @@ describe("API integration", { concurrency: false }, () => {
     assert.strictEqual(body.name, "Bench Press");
   });
 
-  test("creates an unused exercise", async () => {
+  test("creates a second exercise with admin token", async () => {
     const response = await request("/api/exercises", {
       method: "POST",
       headers: {
-        "x-auth-token": userToken,
+        "x-auth-token": adminToken,
       },
       body: JSON.stringify({
         name: "Cable Row",
@@ -178,10 +195,31 @@ describe("API integration", { concurrency: false }, () => {
     assert.strictEqual(response.status, 201);
 
     const body = await response.json();
+    secondExerciseId = body._id;
+
+    assert.strictEqual(body.name, "Cable Row");
+  });
+
+  test("creates an unused exercise", async () => {
+    const response = await request("/api/exercises", {
+      method: "POST",
+      headers: {
+        "x-auth-token": adminToken,
+      },
+      body: JSON.stringify({
+        name: "Bodyweight Squat",
+        muscleGroup: "legs",
+        equipment: "bodyweight",
+      }),
+    });
+
+    assert.strictEqual(response.status, 201);
+
+    const body = await response.json();
     unusedExerciseId = body._id;
   });
 
-  test("creates a workout with embedded sets", async () => {
+  test("creates a workout with exercise ids", async () => {
     const response = await request("/api/workouts", {
       method: "POST",
       headers: {
@@ -191,23 +229,7 @@ describe("API integration", { concurrency: false }, () => {
         title: "Push Day",
         category: "strength",
         durationMinutes: 75,
-        exercises: [
-          {
-            exercise: exerciseId,
-            sets: [
-              {
-                reps: 10,
-                kg: 60,
-                type: "warmup",
-              },
-              {
-                reps: 8,
-                kg: 80,
-                type: "normal",
-              },
-            ],
-          },
-        ],
+        exercises: [exerciseId],
       }),
     });
 
@@ -215,9 +237,8 @@ describe("API integration", { concurrency: false }, () => {
 
     const body = await response.json();
     workoutId = body._id;
-    exerciseEntryId = body.exercises[0]._id;
 
-    assert.strictEqual(body.exercises[0].sets.length, 2);
+    assert.deepStrictEqual(body.exercises, [exerciseId]);
   });
 
   test("adds an exercise to a workout", async () => {
@@ -227,14 +248,7 @@ describe("API integration", { concurrency: false }, () => {
         "x-auth-token": userToken,
       },
       body: JSON.stringify({
-        exercise: exerciseId,
-        sets: [
-          {
-            reps: 12,
-            kg: 50,
-            type: "warmup",
-          },
-        ],
+        exerciseId: secondExerciseId,
       }),
     });
 
@@ -243,32 +257,7 @@ describe("API integration", { concurrency: false }, () => {
     const body = await response.json();
 
     assert.strictEqual(body.exercises.length, 2);
-  });
-
-  test("adds a set to a workout exercise", async () => {
-    const response = await request(
-      `/api/workouts/${workoutId}/exercises/${exerciseEntryId}/sets`,
-      {
-        method: "POST",
-        headers: {
-          "x-auth-token": userToken,
-        },
-        body: JSON.stringify({
-          reps: 6,
-          kg: 90,
-          type: "normal",
-        }),
-      },
-    );
-
-    assert.strictEqual(response.status, 201);
-
-    const body = await response.json();
-    const firstExercise = body.exercises.find(
-      (item) => item._id === exerciseEntryId,
-    );
-
-    assert.strictEqual(firstExercise.sets.length, 3);
+    assert.ok(body.exercises.includes(secondExerciseId));
   });
 
   test("creates a workout log", async () => {
@@ -280,23 +269,6 @@ describe("API integration", { concurrency: false }, () => {
       body: JSON.stringify({
         workout: workoutId,
         notes: "Strong push session.",
-        exercises: [
-          {
-            exercise: exerciseId,
-            sets: [
-              {
-                reps: 10,
-                kg: 60,
-                type: "warmup",
-              },
-              {
-                reps: 8,
-                kg: 80,
-                type: "normal",
-              },
-            ],
-          },
-        ],
       }),
     });
 
@@ -304,8 +276,40 @@ describe("API integration", { concurrency: false }, () => {
 
     const body = await response.json();
     workoutLogId = body._id;
+    workoutLogExerciseEntryId = body.exercises[0]._id;
 
     assert.strictEqual(body.notes, "Strong push session.");
+    assert.strictEqual(body.exercises.length, 2);
+    assert.strictEqual(body.exercises[0].sets.length, 0);
+  });
+
+  test("adds a set to a workout log exercise", async () => {
+    const response = await request(
+      `/api/workout-logs/${workoutLogId}/exercises/${workoutLogExerciseEntryId}/sets`,
+      {
+        method: "POST",
+        headers: {
+          "x-auth-token": userToken,
+        },
+        body: JSON.stringify({
+          reps: 8,
+          kg: 80,
+          type: "normal",
+        }),
+      },
+    );
+
+    assert.strictEqual(response.status, 201);
+
+    const body = await response.json();
+    const loggedExercise = body.exercises.find(
+      (item) => item._id === workoutLogExerciseEntryId,
+    );
+
+    assert.strictEqual(loggedExercise.sets.length, 1);
+    assert.strictEqual(loggedExercise.sets[0].reps, 8);
+    assert.strictEqual(loggedExercise.sets[0].kg, 80);
+    assert.strictEqual(loggedExercise.sets[0].type, "normal");
   });
 
   test("gets current user's workout logs", async () => {
@@ -320,6 +324,7 @@ describe("API integration", { concurrency: false }, () => {
     const body = await response.json();
 
     assert.strictEqual(body.length, 1);
+    assert.strictEqual(body[0]._id, workoutLogId);
   });
 
   test("does not allow normal user to delete a workout", async () => {
@@ -364,6 +369,10 @@ describe("API integration", { concurrency: false }, () => {
     });
 
     assert.strictEqual(response.status, 200);
+
+    const deletedExercise = await Exercise.findById(unusedExerciseId);
+
+    assert.strictEqual(deletedExercise, null);
   });
 
   test("deletes a workout log", async () => {

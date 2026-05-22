@@ -103,7 +103,7 @@ describe("WorkoutLog Mongoose validation", () => {
     );
   });
 
-  test("rejects a logged exercise without sets", async () => {
+  test("accepts a logged exercise without sets", async () => {
     const workoutLog = new WorkoutLog({
       user: "507f1f77bcf86cd799439011",
       workout: "507f1f77bcf86cd799439012",
@@ -111,6 +111,57 @@ describe("WorkoutLog Mongoose validation", () => {
         {
           exercise: "507f1f77bcf86cd799439013",
           sets: [],
+        },
+      ],
+    });
+
+    await workoutLog.validate();
+
+    assert.strictEqual(workoutLog.exercises[0].sets.length, 0);
+  });
+
+  test("rejects invalid reps", async () => {
+    const workoutLog = new WorkoutLog({
+      user: "507f1f77bcf86cd799439011",
+      workout: "507f1f77bcf86cd799439012",
+      exercises: [
+        {
+          exercise: "507f1f77bcf86cd799439013",
+          sets: [
+            {
+              reps: 0,
+              kg: 80,
+              type: "normal",
+            },
+          ],
+        },
+      ],
+    });
+
+    await assert.rejects(
+      async () => {
+        await workoutLog.validate();
+      },
+      {
+        name: "ValidationError",
+      },
+    );
+  });
+
+  test("rejects invalid kg", async () => {
+    const workoutLog = new WorkoutLog({
+      user: "507f1f77bcf86cd799439011",
+      workout: "507f1f77bcf86cd799439012",
+      exercises: [
+        {
+          exercise: "507f1f77bcf86cd799439013",
+          sets: [
+            {
+              reps: 8,
+              kg: -5,
+              type: "normal",
+            },
+          ],
         },
       ],
     });
