@@ -167,11 +167,12 @@ GET {{baseUrl}}/api/workouts
 
 
 ### Create workout
+# Admin route.
 # Workout bevat alleen exercise ids, geen sets.
 # Kopieer _id uit de response naar @workoutId.
 POST {{baseUrl}}/api/workouts
 Content-Type: application/json
-x-auth-token: {{userToken}}
+x-auth-token: {{adminToken}}
 
 {
   "title": "Push Day",
@@ -184,9 +185,10 @@ x-auth-token: {{userToken}}
 
 
 ### Add exercise to workout
+# Admin route.
 POST {{baseUrl}}/api/workouts/{{workoutId}}/exercises
 Content-Type: application/json
-x-auth-token: {{userToken}}
+x-auth-token: {{adminToken}}
 
 {
   "exerciseId": "{{secondExerciseId}}"
@@ -198,10 +200,11 @@ GET {{baseUrl}}/api/workouts/{{workoutId}}
 
 
 ### Update workout
+# Admin route.
 # Ook hier bevat exercises alleen ids.
 PUT {{baseUrl}}/api/workouts/{{workoutId}}
 Content-Type: application/json
-x-auth-token: {{userToken}}
+x-auth-token: {{adminToken}}
 
 {
   "title": "Push Day Updated",
@@ -216,13 +219,14 @@ x-auth-token: {{userToken}}
 
 ### Remove exercise from workout
 DELETE {{baseUrl}}/api/workouts/{{workoutId}}/exercises/{{secondExerciseId}}
-x-auth-token: {{userToken}}
+x-auth-token: {{adminToken}}
 
 
 ### Add exercise to workout again
+# Admin route.
 POST {{baseUrl}}/api/workouts/{{workoutId}}/exercises
 Content-Type: application/json
-x-auth-token: {{userToken}}
+x-auth-token: {{adminToken}}
 
 {
   "exerciseId": "{{secondExerciseId}}"

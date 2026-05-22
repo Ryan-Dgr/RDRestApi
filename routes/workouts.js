@@ -71,6 +71,7 @@ router.get(
 router.post(
   "/",
   auth,
+  admin,
   asyncMiddleware(async (req, res) => {
     const result = validateWorkout(req.body);
 
@@ -103,6 +104,7 @@ router.post(
 router.put(
   "/:id",
   auth,
+  admin,
   asyncMiddleware(async (req, res) => {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).send("ongeldige workout id");
@@ -145,6 +147,7 @@ router.put(
 router.post(
   "/:workoutId/exercises",
   auth,
+  admin,
   asyncMiddleware(async (req, res) => {
     if (!isValidObjectId(req.params.workoutId)) {
       return res.status(400).send("ongeldige workout id");
@@ -186,6 +189,7 @@ router.post(
 router.delete(
   "/:workoutId/exercises/:exerciseId",
   auth,
+  admin,
   asyncMiddleware(async (req, res) => {
     if (!isValidObjectId(req.params.workoutId)) {
       return res.status(400).send("ongeldige workout id");

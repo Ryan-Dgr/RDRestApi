@@ -219,11 +219,28 @@ describe("API integration", { concurrency: false }, () => {
     unusedExerciseId = body._id;
   });
 
-  test("creates a workout with exercise ids", async () => {
+  test("does not allow a normal user to create a workout template", async () => {
     const response = await request("/api/workouts", {
       method: "POST",
       headers: {
         "x-auth-token": userToken,
+      },
+      body: JSON.stringify({
+        title: "Push Day",
+        category: "strength",
+        durationMinutes: 75,
+        exercises: [exerciseId],
+      }),
+    });
+
+    assert.strictEqual(response.status, 403);
+  });
+
+  test("creates a workout template with admin token", async () => {
+    const response = await request("/api/workouts", {
+      method: "POST",
+      headers: {
+        "x-auth-token": adminToken,
       },
       body: JSON.stringify({
         title: "Push Day",
@@ -241,11 +258,42 @@ describe("API integration", { concurrency: false }, () => {
     assert.deepStrictEqual(body.exercises, [exerciseId]);
   });
 
-  test("adds an exercise to a workout", async () => {
+  test("does not allow a normal user to update a workout template", async () => {
+    const response = await request(`/api/workouts/${workoutId}`, {
+      method: "PUT",
+      headers: {
+        "x-auth-token": userToken,
+      },
+      body: JSON.stringify({
+        title: "Push Day Updated",
+        category: "strength",
+        durationMinutes: 80,
+        exercises: [exerciseId],
+      }),
+    });
+
+    assert.strictEqual(response.status, 403);
+  });
+
+  test("does not allow a normal user to add an exercise to a workout template", async () => {
     const response = await request(`/api/workouts/${workoutId}/exercises`, {
       method: "POST",
       headers: {
         "x-auth-token": userToken,
+      },
+      body: JSON.stringify({
+        exerciseId: secondExerciseId,
+      }),
+    });
+
+    assert.strictEqual(response.status, 403);
+  });
+
+  test("adds an exercise to a workout template with admin token", async () => {
+    const response = await request(`/api/workouts/${workoutId}/exercises`, {
+      method: "POST",
+      headers: {
+        "x-auth-token": adminToken,
       },
       body: JSON.stringify({
         exerciseId: secondExerciseId,

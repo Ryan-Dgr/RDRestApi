@@ -1,61 +1,126 @@
 # Workout REST API
 
-Node.js REST API for managing exercises, workout templates, workout sets and logged workout sessions.
+Dit project is een Node.js REST API voor het beheren van oefeningen, workout templates en uitgevoerde workout sessies. De API bevat authenticatie met JWT, rollen voor gewone gebruikers en admins, modelvalidatie met Mongoose, request-validatie met Joi en een geautomatiseerde test suite.
+
+Gebruikers kunnen workouts samenstellen op basis van herbruikbare oefeningen. Wanneer een gebruiker een workout uitvoert, wordt er een workout log aangemaakt waarin de oefeningen uit de template worden overgenomen. Sets, herhalingen en gewicht horen bij die concrete workout log.
+
+> Projectstatus: klaar voor deploymentvoorbereiding.
+> De models, routes, REST Client requests en tests zijn op elkaar afgestemd volgens de huidige datamodelkeuze: workouts bevatten alleen exercise references; sets worden bijgehouden in workout logs.
+
+---
 
 ## Links
 
-- Live API URL: `TODO - add after deployment`
-- Complete API documentation: [API Documentation](#api-documentation)
+- Lokale API URL: `http://localhost:3000`
+- Azure API URL: `TODO - vul aan na deployment`
+- Health check: `/health`
+- Manuele requests: `test.http`
 
-## Tech Stack
+---
+
+## Functionaliteiten
+
+- JWT authenticatie met tokens die na 1 uur verlopen.
+- Role-based authorization met gewone gebruikers en admins.
+- Admin-only beheer van de exercise library.
+- Admin-only beheer van workout templates.
+- Publieke read endpoints voor oefeningen en workout templates.
+- Workout templates met title, category, duration en exercise references.
+- Persoonlijke workout logs per gebruiker.
+- Sets per oefening binnen een workout log.
+- ObjectId-controle voor MongoDB reads en writes.
+- Joi-validatie aan de API-laag en Mongoose-validatie aan de database-laag.
+- Centrale async/error middleware.
+- Unit tests, middleware tests en integratietests.
+- REST Client bestand voor manuele API-controle.
+
+---
+
+## Technologie Stack
+
+- Backend: Node.js en Express
+- Database: MongoDB
+- ODM: Mongoose
+- Validatie: Joi
+- Authenticatie: JWT
+- Password hashing: bcrypt
+- Security middleware: Helmet
+- Logging in development: Morgan
+- Configuratie: dotenv en config
+- View engine voor home page: Pug
+- Testing: Node.js built-in test runner
+- Manuele API requests: REST Client via `test.http`
+
+---
+
+## Systeem Architectuur & Modellen
+
+De API volgt de Vives-structuur met aparte mappen voor `models/`, `routes/` en `middleware/`. De validatie gebeurt in twee lagen:
+
+- Joi valideert request bodies voor ze naar de database gaan.
+- Mongoose bewaakt de uiteindelijke structuur en constraints van de documenten.
+
+De functionele logica draait rond vier kernmodellen:
+
+| Model | Bestand | Doel |
+|---|---|---|
+| User | `models/user.js` | Beheert gebruikers, wachtwoorden, adminrol en JWT-generatie. |
+| Exercise | `models/exercise.js` | Centrale exercise library met naam, spiergroep en materiaal. |
+| Workout | `models/workout.js` | Workout template met titel, categorie, duur en references naar exercises. |
+| WorkoutLog | `models/workoutLog.js` | Persoonlijke uitgevoerde workout met user, workout, oefeningen en sets. |
+
+### References vs Embedded Documents
+
+References worden gebruikt wanneer data herbruikbaar is of op zichzelf betekenis heeft:
+
+- `Workout -> Exercise`, omdat oefeningen opnieuw gebruikt kunnen worden in meerdere workouts.
+- `WorkoutLog -> User`, omdat logs eigendom zijn van een gebruiker.
+- `WorkoutLog -> Workout`, omdat een log gebaseerd is op een workout template.
+- `WorkoutLog -> Exercise`, omdat gelogde oefeningen nog verwijzen naar de exercise library.
+
+Embedded documents worden gebruikt voor data die alleen binnen een groter document betekenis heeft:
+
+- Sets zitten embedded in `WorkoutLog.exercises[].sets`.
+- Sets zitten niet in `Workout`, omdat een workout alleen de template is.
+
+---
+
+## Middleware Architectuur
+
+De API gebruikt een kleine middleware-stack die routes leesbaar houdt en fouten centraal afhandelt.
+
+| Middleware | Bestand | Doel |
+|---|---|---|
+| Auth | `middleware/auth.js` | Controleert het JWT-token in de `x-auth-token` header. |
+| Admin | `middleware/admin.js` | Beperkt bepaalde routes tot users met `isAdmin: true`. |
+| Async wrapper | `middleware/async.js` | Vangt async route errors op en stuurt ze door naar error middleware. |
+| Error handler | `middleware/error.js` | Centrale catch-all voor server errors met nette response. |
+| Helmet | `app.js` | Zet beveiligende HTTP headers. |
+| Morgan | `app.js` | Logt HTTP requests in development mode. |
+
+ObjectId-validatie gebeurt momenteel met lokale helperfuncties in de routes. Dat past bij de huidige projectgrootte en houdt de flow eenvoudig te volgen.
+
+---
+
+## Lokale Installatie & Opstart
+
+### 1. Vereisten
+
+Zorg dat deze tools geinstalleerd zijn:
 
 - Node.js
-- Express
-- MongoDB
-- Mongoose
-- Joi
-- JWT
-- bcrypt
-- Node.js built-in test runner
-- REST Client test file
+- npm
+- MongoDB lokaal, of een MongoDB connection string via Atlas/Cosmos DB
 
-## Features
+### 2. Dependencies installeren
 
-- JWT authentication with expiring tokens
-- Role-based authorization with normal users and admins
-- Exercise management
-- Workout templates with embedded sets
-- Workout logs linked to users, workouts and exercises
-- Input validation with Joi and Mongoose
-- ObjectId validation before MongoDB reads/writes
-- Central error middleware
-- Unit tests and integration tests
+```bash
+npm install
+```
 
-## Data Model
+### 3. Environment variables instellen
 
-The API uses 4 linked MongoDB collections:
-
-| Collection | Purpose | Relations |
-|---|---|---|
-| `users` | Registered API users | Linked from `workoutlogs` |
-| `exercises` | Exercise library | Linked from `workouts` and `workoutlogs` |
-| `workouts` | Workout templates | References exercises |
-| `workoutlogs` | Performed workout sessions | References users, workouts and exercises |
-
-### Embedding vs References
-
-Embedded documents are used for sets because sets only make sense inside a workout or workout log.
-
-References are used for:
-
-- `Workout -> Exercise`, because exercises are reusable library items.
-- `WorkoutLog -> User`, because logs belong to a specific user.
-- `WorkoutLog -> Workout`, because a log is based on a workout template.
-- `WorkoutLog -> Exercise`, because logged exercises should still point to the exercise library.
-
-## Environment Variables
-
-Create a `.env` file in the project root.
+Maak een `.env` bestand aan in de root van het project, naast `package.json`.
 
 ```env
 PORT=3000
@@ -64,90 +129,97 @@ MONGODB_URI_TEST=mongodb://127.0.0.1:27017/rdrestapi_test
 JWT_PRIVATE_KEY=your_private_jwt_key
 ```
 
-Do not commit `.env` to GitHub.
+Belangrijk:
 
-## Installation
+- Commit `.env` nooit naar GitHub.
+- `MONGODB_URI_TEST` wordt gebruikt door de integratietests.
+- `JWT_PRIVATE_KEY` is verplicht. Zonder deze waarde stopt de applicatie bij het opstarten.
 
-```bash
-npm install
-```
-
-## Running The App
+### 4. Server starten
 
 ```bash
 npm start
 ```
 
-The API runs by default on:
+De API draait standaard op:
 
 ```txt
 http://localhost:3000
 ```
 
-## Testing
+Controleer de server met:
 
-Run all automated tests:
+```txt
+GET http://localhost:3000/health
+```
+
+---
+
+## Tests
+
+Alle tests uitvoeren:
 
 ```bash
 npm test
 ```
 
-Run tests with coverage:
+Tests met coverage uitvoeren:
 
 ```bash
 npm run test:coverage
 ```
 
-This project includes:
+De test suite bevat:
 
 - model validation tests
 - middleware tests
 - authentication tests
-- integration tests for the main API flow
+- integratietests voor de volledige API-flow
 
-Manual API requests are available in:
+Manuele requests staan in:
 
 ```txt
 test.http
 ```
 
-Use the REST Client extension in VS Code to run these requests.
+Gebruik hiervoor de REST Client extension in VS Code.
 
-## Authentication
+---
 
-The API uses JWT authentication.
+## Authenticatie & Rollen
 
-Send the token in this header:
+De API gebruikt JWT authenticatie. Beschermde routes verwachten de token in deze header:
 
 ```http
 x-auth-token: your-token-here
 ```
 
-Tokens expire after 1 hour.
+Een nieuwe gebruiker registreren kan via `POST /api/users`. De API geeft dan ook een token terug in de `x-auth-token` response header.
 
-Users cannot make themselves admin during registration. The first admin must be created manually in MongoDB or by a safe seed/admin setup. Admin-only routes require both authentication and admin authorization.
+Inloggen kan via `POST /api/auth`. Deze route geeft de token terug in de response body.
 
-## API Documentation
+Gebruikers kunnen zichzelf niet admin maken tijdens registratie. De eerste admin moet eenmalig veilig aangemaakt worden via MongoDB of via een bestaand admin-account. Daarna kan een admin de rol van andere users aanpassen via `PATCH /api/users/:id/role`.
 
-### Health
+Admins beheren de centrale exercise library en workout templates. Gewone gebruikers kunnen deze templates bekijken en starten daarna een persoonlijke workout log op basis van een gekozen workout.
 
-| Method | Endpoint | Auth | Description |
+---
+
+## API Overzicht
+
+### Health & Home
+
+| Method | Endpoint | Auth | Doel |
 |---|---|---|---|
-| GET | `/health` | No | Check if the API is running |
-
-### Home
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/` | No | Render home page |
+| GET | `/` | Nee | Rendert de Pug home page. |
+| GET | `/health` | Nee | Controleert of de API draait. |
 
 ### Auth
 
-| Method | Endpoint | Auth | Description |
+| Method | Endpoint | Auth | Doel |
 |---|---|---|---|
-| POST | `/api/auth` | No | Login and receive JWT |
+| POST | `/api/auth` | Nee | Login en JWT ontvangen. |
 
-Example body:
+Login body:
 
 ```json
 {
@@ -158,11 +230,11 @@ Example body:
 
 ### Users
 
-| Method | Endpoint | Auth | Description |
+| Method | Endpoint | Auth | Doel |
 |---|---|---|---|
-| POST | `/api/users` | No | Register user |
-| GET | `/api/users/me` | User | Get current user |
-| PATCH | `/api/users/:id/role` | Admin | Update user admin role |
+| POST | `/api/users` | Nee | Nieuwe gebruiker registreren. |
+| GET | `/api/users/me` | User | Ingelogde gebruiker ophalen zonder password. |
+| PATCH | `/api/users/:id/role` | Admin | Adminrol van een gebruiker aanpassen. |
 
 Register body:
 
@@ -174,7 +246,7 @@ Register body:
 }
 ```
 
-Update role body:
+Role update body:
 
 ```json
 {
@@ -184,13 +256,13 @@ Update role body:
 
 ### Exercises
 
-| Method | Endpoint | Auth | Description |
+| Method | Endpoint | Auth | Doel |
 |---|---|---|---|
-| GET | `/api/exercises` | No | Get all exercises |
-| GET | `/api/exercises/:id` | No | Get exercise by id |
-| POST | `/api/exercises` | User | Create exercise |
-| PUT | `/api/exercises/:id` | User | Update exercise |
-| DELETE | `/api/exercises/:id` | Admin | Delete exercise |
+| GET | `/api/exercises` | Nee | Alle oefeningen ophalen. |
+| GET | `/api/exercises/:id` | Nee | Oefening ophalen op id. |
+| POST | `/api/exercises` | Admin | Oefening aanmaken. |
+| PUT | `/api/exercises/:id` | Admin | Oefening aanpassen. |
+| DELETE | `/api/exercises/:id` | Admin | Oefening verwijderen als ze nergens gebruikt wordt. |
 
 Exercise body:
 
@@ -202,13 +274,13 @@ Exercise body:
 }
 ```
 
-Allowed `muscleGroup` values:
+Toegelaten `muscleGroup` waarden:
 
 ```txt
 chest, back, legs, shoulders, arms, core, full body
 ```
 
-Allowed `equipment` values:
+Toegelaten `equipment` waarden:
 
 ```txt
 barbell, dumbbell, machine, bodyweight, cable, kettlebell
@@ -216,15 +288,15 @@ barbell, dumbbell, machine, bodyweight, cable, kettlebell
 
 ### Workouts
 
-| Method | Endpoint | Auth | Description |
+| Method | Endpoint | Auth | Doel |
 |---|---|---|---|
-| GET | `/api/workouts` | No | Get all workouts |
-| GET | `/api/workouts/:id` | No | Get workout by id |
-| POST | `/api/workouts` | User | Create workout |
-| POST | `/api/workouts/:id/exercises` | User | Add exercise to workout |
-| POST | `/api/workouts/:workoutId/exercises/:exerciseEntryId/sets` | User | Add set to workout exercise |
-| PUT | `/api/workouts/:id` | User | Update workout |
-| DELETE | `/api/workouts/:id` | Admin | Delete workout |
+| GET | `/api/workouts` | Nee | Alle workout templates ophalen. |
+| GET | `/api/workouts/:id` | Nee | Workout template ophalen op id. |
+| POST | `/api/workouts` | Admin | Workout template aanmaken. |
+| PUT | `/api/workouts/:id` | Admin | Workout template aanpassen. |
+| POST | `/api/workouts/:workoutId/exercises` | Admin | Exercise toevoegen aan workout. |
+| DELETE | `/api/workouts/:workoutId/exercises/:exerciseId` | Admin | Exercise verwijderen uit workout. |
+| DELETE | `/api/workouts/:id` | Admin | Workout verwijderen als ze niet gebruikt wordt in een log. |
 
 Workout body:
 
@@ -234,158 +306,146 @@ Workout body:
   "category": "strength",
   "durationMinutes": 75,
   "exercises": [
-    {
-      "exercise": "exerciseId",
-      "sets": [
-        {
-          "reps": 10,
-          "kg": 60,
-          "type": "warmup"
-        },
-        {
-          "reps": 8,
-          "kg": 80,
-          "type": "normal"
-        }
-      ]
-    }
+    "exerciseId"
   ]
 }
 ```
 
-Allowed workout categories:
+Exercise toevoegen aan workout:
+
+```json
+{
+  "exerciseId": "exerciseId"
+}
+```
+
+Toegelaten workout categories:
 
 ```txt
 strength, cardio
 ```
 
-Allowed set types:
+### Workout Logs
+
+| Method | Endpoint | Auth | Doel |
+|---|---|---|---|
+| GET | `/api/workout-logs` | User | Workout logs van de ingelogde gebruiker ophalen. |
+| GET | `/api/workout-logs/:id` | User | Een eigen workout log ophalen. |
+| POST | `/api/workout-logs` | User | Nieuwe workout log starten op basis van een workout. |
+| POST | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets` | User | Set toevoegen aan een oefening in een log. |
+| PUT | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets/:setId` | User | Set aanpassen. |
+| DELETE | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets/:setId` | User | Set verwijderen. |
+| DELETE | `/api/workout-logs/:id` | User | Eigen workout log verwijderen. |
+
+Workout log starten:
+
+```json
+{
+  "workout": "workoutId",
+  "notes": "Strong push session."
+}
+```
+
+De server kopieert de exercises uit de workout naar de workout log. Elke exercise entry start met `sets: []`.
+
+Set body:
+
+```json
+{
+  "reps": 8,
+  "kg": 80,
+  "type": "normal"
+}
+```
+
+Toegelaten set types:
 
 ```txt
 warmup, normal, dropset
 ```
 
-### Workout Logs
+---
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/api/workout-logs` | User | Get current user's workout logs |
-| GET | `/api/workout-logs/:id` | User | Get workout log by id |
-| POST | `/api/workout-logs` | User | Create workout log |
-| PUT | `/api/workout-logs/:id` | User | Update workout log |
-| DELETE | `/api/workout-logs/:id` | User | Delete workout log |
+## Azure Deployment
 
-Workout log body:
+De geplande deployment gebeurt via Azure. De eenvoudigste productieopstelling voor dit project is:
 
-```json
-{
-  "workout": "workoutId",
-  "notes": "Strong push session.",
-  "exercises": [
-    {
-      "exercise": "exerciseId",
-      "sets": [
-        {
-          "reps": 10,
-          "kg": 60,
-          "type": "warmup"
-        },
-        {
-          "reps": 8,
-          "kg": 80,
-          "type": "normal"
-        }
-      ]
-    }
-  ]
-}
-```
+- Azure App Service voor de Node.js API.
+- MongoDB Atlas of Azure Cosmos DB for MongoDB als managed database.
+- Azure App Service Configuration voor environment variables.
+- GitHub of Azure deployment center voor automatische deployment vanuit de repository.
 
-## Deployment Guide
+### 1. Database voorzien
 
-This guide uses Render and MongoDB Atlas.
+Kies een MongoDB-compatible database en kopieer de connection string.
 
-### 1. Prepare MongoDB Atlas
+Mogelijke opties:
 
-1. Create a free MongoDB Atlas account.
-2. Create a cluster.
-3. Create a database user.
-4. Allow network access from your deployment provider.
-5. Copy the connection string.
+- MongoDB Atlas
+- Azure Cosmos DB for MongoDB
 
-Example connection string format:
+De API verwacht deze connection string in:
 
 ```txt
-mongodb+srv://username:password@cluster.mongodb.net/workout-api
+MONGODB_URI
 ```
 
-### 2. Push Code To GitHub
+### 2. Azure App Service aanmaken
 
-```bash
-git add .
-git commit -m "prepare API for deployment"
-git push
-```
+Maak in Azure een App Service aan met een Node.js runtime. Gebruik voor productie minstens deze instellingen:
 
-### 3. Create Render Web Service
-
-1. Go to Render.
-2. Create a new Web Service.
-3. Connect your GitHub repository.
-4. Use these settings:
-
-| Setting | Value |
+| Setting | Waarde |
 |---|---|
-| Environment | Node |
-| Build Command | `npm install` |
-| Start Command | `npm start` |
+| Runtime stack | Node.js |
+| Start command | `npm start` |
+| Build command | `npm install` |
+| Environment | Production |
 
-### 4. Add Environment Variables On Render
+### 3. App settings toevoegen
 
-Add:
+Voeg in Azure App Service deze environment variables toe:
 
 ```txt
-MONGODB_URI=your_atlas_connection_string
+MONGODB_URI=your_production_mongodb_connection_string
 JWT_PRIVATE_KEY=your_production_jwt_secret
 NODE_ENV=production
 ```
 
-Render sets `PORT` automatically, so the app uses:
+Azure voorziet zelf een poort voor de applicatie. De code gebruikt daarom:
 
 ```js
 process.env.PORT || 3000
 ```
 
-### 5. Deploy And Test
+### 4. Deployen en testen
 
-After deployment, test:
+Na deployment moeten minstens deze endpoints werken:
 
 ```txt
-GET https://your-api.onrender.com/health
-GET https://your-api.onrender.com/api/exercises
+GET https://your-app-name.azurewebsites.net/health
+GET https://your-app-name.azurewebsites.net/api/exercises
 ```
 
-Then update the README links:
+Daarna kunnen de links bovenaan deze README worden aangevuld met de echte Azure URL.
 
-```md
-- Live API URL: https://your-api.onrender.com
-- Complete API documentation: https://your-api.onrender.com or README/API docs link
-```
+---
 
-## Project Requirements Checklist
+## Project Checklist
 
-- Express API with at least 17 endpoints
-- 4 linked collections
-- MongoDB and Mongoose
-- Embedded documents for sets
-- JWT authentication and authorization
+- Express REST API
+- Minstens 17 endpoints
+- 4 gelinkte MongoDB collections
+- Mongoose schemas en validatie
+- Joi request-validatie
+- References tussen collections
+- Embedded subdocuments voor workout log sets
+- JWT authenticatie
+- Role-based authorization met admin routes
 - Expiring JWT tokens
-- Environment variables for secrets and connection strings
-- Input validation
-- ObjectId validation
-- Error middleware
+- Environment variables voor secrets en database config
+- ObjectId validatie
+- Centrale error middleware
 - Unit tests
-- Integration tests
-- REST Client file
-- Deployment guide
-
+- Integratietests
+- REST Client bestand
+- Azure deploymentplan
