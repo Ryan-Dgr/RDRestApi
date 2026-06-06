@@ -1,0 +1,77 @@
+openapi: 3.0.3
+info:
+  title: Workout REST API
+  version: 1.0.0
+  description: REST API voor exercises, workouts, workout logs en users.
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://workout-api-ryan-ace2grfeheaxbtf7.francecentral-01.azurewebsites.net
+    description: Azure production server
+tags:
+  - name: Health
+  - name: Auth
+  - name: Users
+  - name: Exercises
+  - name: Workouts
+  - name: Workout Logs
+paths:
+  /api/exercises:
+    get:
+      summary: Get all exercises
+      tags:
+        - Exercises
+      responses:
+        "200":
+          description: List of exercises
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Exercise"
+        "500":
+          description: Unexpected server error
+components:
+  schemas:
+    Exercise:
+      type: object
+      required:
+        - _id
+        - name
+        - muscleGroup
+        - equipment
+      properties:
+        _id:
+          type: string
+          example: 5748f2Oa979
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Bench Press
+        muscleGroup:
+          type: string
+          enum:
+            - chest
+            - back
+            - legs
+            - shoulders
+            - arms
+            - core
+            - full body
+          example: chest
+        equipment:
+          type: string
+          enum:
+            - barbell
+            - dumbbell
+            - machine
+            - bodyweight
+            - cable
+            - kettlebell
+          example: barbell
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-06-06T12:00:00.000Z
