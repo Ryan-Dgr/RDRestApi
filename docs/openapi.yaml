@@ -148,6 +148,118 @@ paths:
                   $ref: "#/components/schemas/ExerciseDTO"
         "500":
           $ref: "#/components/responses/InternalServerError"
+    post:
+      summary: Create an exercise
+      tags:
+        - Exercises
+      security:
+        - ApiTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExerciseInputDTO"
+            example:
+              name: Bench Press
+              muscleGroup: chest
+              equipment: barbell
+      responses:
+        "201":
+          description: Exercise created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExerciseDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/exercises/{id}:
+    get:
+      summary: Get exercise by id
+      tags:
+        - Exercises
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Exercise found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExerciseDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      summary: Update an exercise
+      tags:
+        - Exercises
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExerciseInputDTO"
+            example:
+              name: Bench Press
+              muscleGroup: chest
+              equipment: barbell
+      responses:
+        "200":
+          description: Exercise updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExerciseDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete an exercise
+      tags:
+        - Exercises
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Exercise deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExerciseDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
   securitySchemes:
@@ -170,46 +282,19 @@ components:
 
   responses:
     BadRequest:
-      description: Invalid input or invalid ObjectId
-      content:
-        text/plain:
-          schema:
-            type: string
-          example: ongeldige exercise id
+      description: Invalid request, invalid input, invalid ObjectId, invalid token, or duplicate data.
+
     Unauthorized:
-      description: Missing authentication token
-      content:
-        text/plain:
-          schema:
-            type: string
-          example: Access denied. No token provided.
+      description: Missing authentication token.
+
     Forbidden:
-      description: Authenticated user is not an admin
-      content:
-        text/plain:
-          schema:
-            type: string
-          example: Access denied.
+      description: Authenticated user is not allowed to perform this action.
+
     NotFound:
-      description: Requested resource was not found
-      content:
-        text/plain:
-          schema:
-            type: string
-          example: exercise niet gevonden
+      description: Requested resource was not found.
+
     InternalServerError:
-      description: Unexpected server error
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Something failed.
-              details:
-                type: string
-                example: Error details are only shown in development.
+      description: Unexpected server error.
 
   schemas:
     RegisterRequestDTO:
