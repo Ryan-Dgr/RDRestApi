@@ -9,6 +9,7 @@ servers:
   - url: http://localhost:3000
     description: Local development server
 tags:
+  - name: Home
   - name: Health
   - name: Auth
   - name: Users
@@ -17,6 +18,37 @@ tags:
   - name: Workout Logs
 
 paths:
+  /:
+    get:
+      summary: Render home page
+      tags:
+        - Home
+      responses:
+        "200":
+          description: HTML home page
+          content:
+            text/html:
+              schema:
+                type: string
+              example: "<html><body><h1>Workout API</h1></body></html>"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /health:
+    get:
+      summary: Get API health status
+      tags:
+        - Health
+      responses:
+        "200":
+          description: API health status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponseDTO"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/auth:
     post:
       summary: Login user
@@ -70,7 +102,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserDTO"
+                $ref: "#/components/schemas/RegisteredUserDTO"
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -261,6 +293,399 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/workouts:
+    get:
+      summary: Get all workouts
+      tags:
+        - Workouts
+      responses:
+        "200":
+          description: List of workout templates with populated exercises
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkoutPopulatedDTO"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      summary: Create a workout
+      tags:
+        - Workouts
+      security:
+        - ApiTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutInputDTO"
+            example:
+              title: Push Day
+              category: strength
+              durationMinutes: 75
+              exercises:
+                - 665f1e5a9a2f1a0012b34567
+      responses:
+        "201":
+          description: Workout created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/workouts/{id}:
+    get:
+      summary: Get workout by id
+      tags:
+        - Workouts
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Workout found with populated exercises
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutPopulatedDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      summary: Update a workout
+      tags:
+        - Workouts
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutInputDTO"
+            example:
+              title: Push Day Updated
+              category: strength
+              durationMinutes: 80
+              exercises:
+                - 665f1e5a9a2f1a0012b34567
+      responses:
+        "200":
+          description: Workout updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete a workout
+      tags:
+        - Workouts
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Workout deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/workouts/{workoutId}/exercises:
+    post:
+      summary: Add exercise to workout
+      tags:
+        - Workouts
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workoutId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddExerciseToWorkoutRequestDTO"
+            example:
+              exerciseId: 665f1e5a9a2f1a0012b34567
+      responses:
+        "201":
+          description: Exercise added to workout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/workouts/{workoutId}/exercises/{exerciseId}:
+    delete:
+      summary: Remove exercise from workout
+      tags:
+        - Workouts
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workoutId"
+        - $ref: "#/components/parameters/exerciseId"
+      responses:
+        "200":
+          description: Exercise removed from workout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/workout-logs:
+    get:
+      summary: Get current user's workout logs
+      tags:
+        - Workout Logs
+      security:
+        - ApiTokenAuth: []
+      responses:
+        "200":
+          description: List of workout logs for the logged-in user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkoutLogDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      summary: Create a workout log
+      tags:
+        - Workout Logs
+      security:
+        - ApiTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutLogCreateDTO"
+            example:
+              workout: 665f1e5a9a2f1a0012b34567
+              notes: Strong push session.
+      responses:
+        "201":
+          description: Workout log created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutLogDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/workout-logs/{id}:
+    get:
+      summary: Get workout log by id
+      tags:
+        - Workout Logs
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Workout log found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutLogDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete workout log
+      tags:
+        - Workout Logs
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Workout log deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutLogDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/workout-logs/{logId}/exercises/{exerciseEntryId}/sets:
+    post:
+      summary: Add set to workout log exercise
+      tags:
+        - Workout Logs
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/logId"
+        - $ref: "#/components/parameters/exerciseEntryId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutLogSetInputDTO"
+            example:
+              reps: 8
+              kg: 80
+              type: normal
+      responses:
+        "201":
+          description: Set added to workout log exercise
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutLogDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/workout-logs/{logId}/exercises/{exerciseEntryId}/sets/{setId}:
+    put:
+      summary: Update workout log exercise set
+      tags:
+        - Workout Logs
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/logId"
+        - $ref: "#/components/parameters/exerciseEntryId"
+        - $ref: "#/components/parameters/setId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutLogSetInputDTO"
+            example:
+              reps: 6
+              kg: 90
+              type: normal
+      responses:
+        "200":
+          description: Set updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutLogDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete workout log exercise set
+      tags:
+        - Workout Logs
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/logId"
+        - $ref: "#/components/parameters/exerciseEntryId"
+        - $ref: "#/components/parameters/setId"
+      responses:
+        "200":
+          description: Set deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkoutLogDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   securitySchemes:
     ApiTokenAuth:
@@ -275,6 +700,51 @@ components:
       in: path
       required: true
       description: MongoDB ObjectId
+      schema:
+        type: string
+        pattern: "^[a-fA-F0-9]{24}$"
+      example: 665f1e5a9a2f1a0012b34567
+    workoutId:
+      name: workoutId
+      in: path
+      required: true
+      description: MongoDB ObjectId of the workout
+      schema:
+        type: string
+        pattern: "^[a-fA-F0-9]{24}$"
+      example: 665f1e5a9a2f1a0012b34567
+    exerciseId:
+      name: exerciseId
+      in: path
+      required: true
+      description: MongoDB ObjectId of the exercise
+      schema:
+        type: string
+        pattern: "^[a-fA-F0-9]{24}$"
+      example: 665f1e5a9a2f1a0012b34567
+    logId:
+      name: logId
+      in: path
+      required: true
+      description: MongoDB ObjectId of the workout log
+      schema:
+        type: string
+        pattern: "^[a-fA-F0-9]{24}$"
+      example: 665f1e5a9a2f1a0012b34567
+    exerciseEntryId:
+      name: exerciseEntryId
+      in: path
+      required: true
+      description: MongoDB ObjectId of the exercise entry inside the workout log
+      schema:
+        type: string
+        pattern: "^[a-fA-F0-9]{24}$"
+      example: 665f1e5a9a2f1a0012b34567
+    setId:
+      name: setId
+      in: path
+      required: true
+      description: MongoDB ObjectId of the set inside the workout log exercise entry
       schema:
         type: string
         pattern: "^[a-fA-F0-9]{24}$"
@@ -297,6 +767,24 @@ components:
       description: Unexpected server error.
 
   schemas:
+    HealthResponseDTO:
+      type: object
+      required:
+        - status
+        - uptime
+        - timestamp
+      properties:
+        status:
+          type: string
+          example: ok
+        uptime:
+          type: number
+          example: 123.45
+        timestamp:
+          type: string
+          format: date-time
+          example: 2026-06-06T12:00:00.000Z
+
     RegisterRequestDTO:
       type: object
       required:
@@ -350,12 +838,32 @@ components:
           type: boolean
           example: true
 
+    RegisteredUserDTO:
+      type: object
+      required:
+        - _id
+        - name
+        - email
+      properties:
+        _id:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        name:
+          type: string
+          example: Normal User
+        email:
+          type: string
+          format: email
+          example: normal.user@example.com
+
     UserDTO:
       type: object
       required:
         - _id
         - name
         - email
+        - isAdmin
       properties:
         _id:
           type: string
@@ -412,6 +920,7 @@ components:
         - type: object
           required:
             - _id
+            - createdAt
           properties:
             _id:
               type: string
@@ -421,3 +930,236 @@ components:
               type: string
               format: date-time
               example: 2026-06-06T12:00:00.000Z
+
+    WorkoutInputDTO:
+      type: object
+      required:
+        - title
+        - category
+        - durationMinutes
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: Push Day
+        category:
+          type: string
+          enum:
+            - strength
+            - cardio
+          example: strength
+        durationMinutes:
+          type: integer
+          minimum: 1
+          maximum: 300
+          example: 75
+        exercises:
+          type: array
+          items:
+            type: string
+            pattern: "^[a-fA-F0-9]{24}$"
+          example:
+            - 665f1e5a9a2f1a0012b34567
+
+    WorkoutDTO:
+      type: object
+      required:
+        - _id
+        - title
+        - category
+        - durationMinutes
+        - exercises
+        - createdAt
+      properties:
+        _id:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: Push Day
+        category:
+          type: string
+          enum:
+            - strength
+            - cardio
+          example: strength
+        durationMinutes:
+          type: integer
+          minimum: 1
+          maximum: 300
+          example: 75
+        exercises:
+          type: array
+          items:
+            type: string
+            pattern: "^[a-fA-F0-9]{24}$"
+          example:
+            - 665f1e5a9a2f1a0012b34567
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-06-06T12:00:00.000Z
+
+    WorkoutPopulatedDTO:
+      type: object
+      required:
+        - _id
+        - title
+        - category
+        - durationMinutes
+        - exercises
+        - createdAt
+      properties:
+        _id:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: Push Day
+        category:
+          type: string
+          enum:
+            - strength
+            - cardio
+          example: strength
+        durationMinutes:
+          type: integer
+          minimum: 1
+          maximum: 300
+          example: 75
+        exercises:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExerciseDTO"
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-06-06T12:00:00.000Z
+
+    AddExerciseToWorkoutRequestDTO:
+      type: object
+      required:
+        - exerciseId
+      properties:
+        exerciseId:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+
+    WorkoutLogCreateDTO:
+      type: object
+      required:
+        - workout
+      properties:
+        workout:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        performedAt:
+          type: string
+          format: date-time
+          example: 2026-06-06T12:00:00.000Z
+        notes:
+          type: string
+          maxLength: 500
+          example: Strong push session.
+
+    WorkoutLogSetInputDTO:
+      type: object
+      required:
+        - reps
+        - kg
+        - type
+      properties:
+        reps:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 8
+        kg:
+          type: number
+          minimum: 0
+          maximum: 500
+          example: 80
+        type:
+          type: string
+          enum:
+            - warmup
+            - normal
+            - dropset
+          example: normal
+
+    WorkoutLogSetDTO:
+      allOf:
+        - $ref: "#/components/schemas/WorkoutLogSetInputDTO"
+        - type: object
+          required:
+            - _id
+          properties:
+            _id:
+              type: string
+              pattern: "^[a-fA-F0-9]{24}$"
+              example: 665f1e5a9a2f1a0012b34567
+
+    WorkoutLogExerciseDTO:
+      type: object
+      required:
+        - _id
+        - exercise
+        - sets
+      properties:
+        _id:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        exercise:
+          oneOf:
+            - type: string
+              pattern: "^[a-fA-F0-9]{24}$"
+            - $ref: "#/components/schemas/ExerciseDTO"
+        sets:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkoutLogSetDTO"
+
+    WorkoutLogDTO:
+      type: object
+      required:
+        - _id
+        - user
+        - workout
+        - performedAt
+        - exercises
+      properties:
+        _id:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        user:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        workout:
+          oneOf:
+            - type: string
+              pattern: "^[a-fA-F0-9]{24}$"
+            - $ref: "#/components/schemas/WorkoutDTO"
+        performedAt:
+          type: string
+          format: date-time
+          example: 2026-06-06T12:00:00.000Z
+        notes:
+          type: string
+          maxLength: 500
+          example: Strong push session.
+        exercises:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkoutLogExerciseDTO"
