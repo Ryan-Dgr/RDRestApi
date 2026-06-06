@@ -5,6 +5,10 @@ const morgan = require("morgan");
 const helmet = require("helmet");
 const config = require("config");
 
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+const swaggerDocument = YAML.load("./docs/openapi.yaml");
+
 const home = require("./routes/home");
 const workouts = require("./routes/workouts");
 const exercises = require("./routes/exercises");
@@ -45,6 +49,7 @@ app.use("/api/exercises", exercises);
 app.use("/api/users", users);
 app.use("/api/auth", auth);
 app.use("/api/workout-logs", workoutLogs);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(error);
 
