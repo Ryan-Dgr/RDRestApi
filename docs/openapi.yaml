@@ -4,12 +4,10 @@ info:
   version: 1.0.0
   description: REST API voor exercises, workouts, workout logs en users.
 servers:
-  - url: /
-    description: Current server
-  - url: http://localhost:3000
-    description: Local development server
   - url: https://workout-api-ryan-ace2grfeheaxbtf7.francecentral-01.azurewebsites.net
     description: Azure production server
+  - url: http://localhost:3000
+    description: Local development server
 tags:
   - name: Health
   - name: Auth
