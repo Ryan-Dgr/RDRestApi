@@ -33,18 +33,82 @@ paths:
         "500":
           description: Unexpected server error
 components:
+  securitySchemes:
+    ApiTokenAuth:
+      type: apiKey
+      in: header
+      name: x-auth-token
+      description: JWT token returned by register/login.
+
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      description: MongoDB ObjectId
+      schema:
+        $ref: "#/components/schemas/ObjectId"
+      example: 665f1e5a9a2f1a0012b34567
+
+  responses:
+    BadRequest:
+      description: Invalid input or invalid ObjectId
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: ongeldige exercise id
+    Unauthorized:
+      description: Missing authentication token
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: Access denied. No token provided.
+    Forbidden:
+      description: Authenticated user is not an admin
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: Access denied.
+    NotFound:
+      description: Requested resource was not found
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: exercise niet gevonden
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
   schemas:
-    Exercise:
+    ObjectId:
+      type: string
+      pattern: "^[a-fA-F0-9]{24}$"
+      example: 665f1e5a9a2f1a0012b34567
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Something failed.
+        details:
+          type: string
+          example: Error details are only shown in development.
+
+    ExerciseInput:
       type: object
       required:
-        - _id
         - name
         - muscleGroup
         - equipment
       properties:
-        _id:
-          type: string
-          example: 5748f2Oa979
         name:
           type: string
           minLength: 2
@@ -71,7 +135,17 @@ components:
             - cable
             - kettlebell
           example: barbell
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-06-06T12:00:00.000Z
+
+    Exercise:
+      allOf:
+        - $ref: "#/components/schemas/ExerciseInput"
+        - type: object
+          required:
+            - _id
+          properties:
+            _id:
+              $ref: "#/components/schemas/ObjectId"
+            createdAt:
+              type: string
+              format: date-time
+              example: 2026-06-06T12:00:00.000Z
