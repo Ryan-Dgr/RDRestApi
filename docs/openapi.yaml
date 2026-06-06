@@ -15,7 +15,123 @@ tags:
   - name: Exercises
   - name: Workouts
   - name: Workout Logs
+
 paths:
+  /api/auth:
+    post:
+      summary: Login user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequestDTO"
+            example:
+              email: normal.user@example.com
+              password: password123
+      responses:
+        "200":
+          description: JWT token returned as plain text
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/users:
+    post:
+      summary: Register a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequestDTO"
+            example:
+              name: Normal User
+              email: normal.user@example.com
+              password: password123
+      responses:
+        "200":
+          description: User registered. JWT token is returned in the x-auth-token response header.
+          headers:
+            x-auth-token:
+              description: JWT token for the registered user
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/users/me:
+    get:
+      summary: Get the logged-in user
+      tags:
+        - Users
+      security:
+        - ApiTokenAuth: []
+      responses:
+        "200":
+          description: Current user without password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/users/{id}/role:
+    patch:
+      summary: Update user admin role
+      tags:
+        - Users
+      security:
+        - ApiTokenAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleUpdateRequestDTO"
+            example:
+              isAdmin: true
+      responses:
+        "200":
+          description: User role updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/exercises:
     get:
       summary: Get all exercises
@@ -29,9 +145,10 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Exercise"
+                  $ref: "#/components/schemas/ExerciseDTO"
         "500":
-          description: Unexpected server error
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   securitySchemes:
     ApiTokenAuth:
@@ -47,7 +164,8 @@ components:
       required: true
       description: MongoDB ObjectId
       schema:
-        $ref: "#/components/schemas/ObjectId"
+        type: string
+        pattern: "^[a-fA-F0-9]{24}$"
       example: 665f1e5a9a2f1a0012b34567
 
   responses:
@@ -84,25 +202,92 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            type: object
+            properties:
+              message:
+                type: string
+                example: Something failed.
+              details:
+                type: string
+                example: Error details are only shown in development.
 
   schemas:
-    ObjectId:
-      type: string
-      pattern: "^[a-fA-F0-9]{24}$"
-      example: 665f1e5a9a2f1a0012b34567
-
-    ErrorResponse:
+    RegisterRequestDTO:
       type: object
+      required:
+        - name
+        - email
+        - password
       properties:
-        message:
+        name:
           type: string
-          example: Something failed.
-        details:
+          minLength: 5
+          maxLength: 50
+          example: Normal User
+        email:
           type: string
-          example: Error details are only shown in development.
+          format: email
+          minLength: 5
+          maxLength: 255
+          example: normal.user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 5
+          maxLength: 255
+          example: password123
 
-    ExerciseInput:
+    LoginRequestDTO:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 5
+          maxLength: 255
+          example: normal.user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 5
+          maxLength: 255
+          example: password123
+
+    RoleUpdateRequestDTO:
+      type: object
+      required:
+        - isAdmin
+      properties:
+        isAdmin:
+          type: boolean
+          example: true
+
+    UserDTO:
+      type: object
+      required:
+        - _id
+        - name
+        - email
+      properties:
+        _id:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          example: 665f1e5a9a2f1a0012b34567
+        name:
+          type: string
+          example: Normal User
+        email:
+          type: string
+          format: email
+          example: normal.user@example.com
+        isAdmin:
+          type: boolean
+          example: false
+
+    ExerciseInputDTO:
       type: object
       required:
         - name
@@ -136,15 +321,17 @@ components:
             - kettlebell
           example: barbell
 
-    Exercise:
+    ExerciseDTO:
       allOf:
-        - $ref: "#/components/schemas/ExerciseInput"
+        - $ref: "#/components/schemas/ExerciseInputDTO"
         - type: object
           required:
             - _id
           properties:
             _id:
-              $ref: "#/components/schemas/ObjectId"
+              type: string
+              pattern: "^[a-fA-F0-9]{24}$"
+              example: 665f1e5a9a2f1a0012b34567
             createdAt:
               type: string
               format: date-time
