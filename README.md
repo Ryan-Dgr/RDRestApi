@@ -13,6 +13,8 @@ Gebruikers kunnen workouts samenstellen op basis van herbruikbare oefeningen. Wa
 
 - Lokale API URL: `http://localhost:3000`
 - Azure API URL: `https://workout-api-ryan-ace2grfeheaxbtf7.francecentral-01.azurewebsites.net/`
+- Lokale Swagger UI: `http://localhost:3000/api-docs/`
+- Azure Swagger UI: `https://workout-api-ryan-ace2grfeheaxbtf7.francecentral-01.azurewebsites.net/api-docs/`
 - Health check: `/health`
 - Manuele requests: `test.http`
 
@@ -50,6 +52,7 @@ Gebruikers kunnen workouts samenstellen op basis van herbruikbare oefeningen. Wa
 - View engine voor home page: Pug
 - Testing: Node.js built-in test runner
 - Manuele API requests: REST Client via `test.http`
+- API documentatie: Swagger UI met `swagger-ui-express` en OpenAPI YAML via `yamljs`
 
 ---
 
@@ -62,12 +65,12 @@ De API volgt de Vives-structuur met aparte mappen voor `models/`, `routes/` en `
 
 De functionele logica draait rond vier kernmodellen:
 
-| Model | Bestand | Doel |
-|---|---|---|
-| User | `models/user.js` | Beheert gebruikers, wachtwoorden, adminrol en JWT-generatie. |
-| Exercise | `models/exercise.js` | Centrale exercise library met naam, spiergroep en materiaal. |
-| Workout | `models/workout.js` | Workout template met titel, categorie, duur en references naar exercises. |
-| WorkoutLog | `models/workoutLog.js` | Persoonlijke uitgevoerde workout met user, workout, oefeningen en sets. |
+| Model      | Bestand                | Doel                                                                      |
+| ---------- | ---------------------- | ------------------------------------------------------------------------- |
+| User       | `models/user.js`       | Beheert gebruikers, wachtwoorden, adminrol en JWT-generatie.              |
+| Exercise   | `models/exercise.js`   | Centrale exercise library met naam, spiergroep en materiaal.              |
+| Workout    | `models/workout.js`    | Workout template met titel, categorie, duur en references naar exercises. |
+| WorkoutLog | `models/workoutLog.js` | Persoonlijke uitgevoerde workout met user, workout, oefeningen en sets.   |
 
 ### References vs Embedded Documents
 
@@ -89,14 +92,14 @@ Embedded documents worden gebruikt voor data die alleen binnen een groter docume
 
 De API gebruikt een kleine middleware-stack die routes leesbaar houdt en fouten centraal afhandelt.
 
-| Middleware | Bestand | Doel |
-|---|---|---|
-| Auth | `middleware/auth.js` | Controleert het JWT-token in de `x-auth-token` header. |
-| Admin | `middleware/admin.js` | Beperkt bepaalde routes tot users met `isAdmin: true`. |
+| Middleware    | Bestand               | Doel                                                                 |
+| ------------- | --------------------- | -------------------------------------------------------------------- |
+| Auth          | `middleware/auth.js`  | Controleert het JWT-token in de `x-auth-token` header.               |
+| Admin         | `middleware/admin.js` | Beperkt bepaalde routes tot users met `isAdmin: true`.               |
 | Async wrapper | `middleware/async.js` | Vangt async route errors op en stuurt ze door naar error middleware. |
-| Error handler | `middleware/error.js` | Centrale catch-all voor server errors met nette response. |
-| Helmet | `app.js` | Zet beveiligende HTTP headers. |
-| Morgan | `app.js` | Logt HTTP requests in development mode. |
+| Error handler | `middleware/error.js` | Centrale catch-all voor server errors met nette response.            |
+| Helmet        | `app.js`              | Zet beveiligende HTTP headers.                                       |
+| Morgan        | `app.js`              | Logt HTTP requests in development mode.                              |
 
 ObjectId-validatie gebeurt momenteel met lokale helperfuncties in de routes. Dat past bij de huidige projectgrootte en houdt de flow eenvoudig te volgen.
 
@@ -208,16 +211,16 @@ Admins beheren de centrale exercise library en workout templates. Gewone gebruik
 
 ### Health & Home
 
-| Method | Endpoint | Auth | Doel |
-|---|---|---|---|
-| GET | `/` | Nee | Rendert de Pug home page. |
-| GET | `/health` | Nee | Controleert of de API draait. |
+| Method | Endpoint  | Auth | Doel                          |
+| ------ | --------- | ---- | ----------------------------- |
+| GET    | `/`       | Nee  | Rendert de Pug home page.     |
+| GET    | `/health` | Nee  | Controleert of de API draait. |
 
 ### Auth
 
-| Method | Endpoint | Auth | Doel |
-|---|---|---|---|
-| POST | `/api/auth` | Nee | Login en JWT ontvangen. |
+| Method | Endpoint    | Auth | Doel                    |
+| ------ | ----------- | ---- | ----------------------- |
+| POST   | `/api/auth` | Nee  | Login en JWT ontvangen. |
 
 Login body:
 
@@ -230,11 +233,11 @@ Login body:
 
 ### Users
 
-| Method | Endpoint | Auth | Doel |
-|---|---|---|---|
-| POST | `/api/users` | Nee | Nieuwe gebruiker registreren. |
-| GET | `/api/users/me` | User | Ingelogde gebruiker ophalen zonder password. |
-| PATCH | `/api/users/:id/role` | Admin | Adminrol van een gebruiker aanpassen. |
+| Method | Endpoint              | Auth  | Doel                                         |
+| ------ | --------------------- | ----- | -------------------------------------------- |
+| POST   | `/api/users`          | Nee   | Nieuwe gebruiker registreren.                |
+| GET    | `/api/users/me`       | User  | Ingelogde gebruiker ophalen zonder password. |
+| PATCH  | `/api/users/:id/role` | Admin | Adminrol van een gebruiker aanpassen.        |
 
 Register body:
 
@@ -256,12 +259,12 @@ Role update body:
 
 ### Exercises
 
-| Method | Endpoint | Auth | Doel |
-|---|---|---|---|
-| GET | `/api/exercises` | Nee | Alle oefeningen ophalen. |
-| GET | `/api/exercises/:id` | Nee | Oefening ophalen op id. |
-| POST | `/api/exercises` | Admin | Oefening aanmaken. |
-| PUT | `/api/exercises/:id` | Admin | Oefening aanpassen. |
+| Method | Endpoint             | Auth  | Doel                                                |
+| ------ | -------------------- | ----- | --------------------------------------------------- |
+| GET    | `/api/exercises`     | Nee   | Alle oefeningen ophalen.                            |
+| GET    | `/api/exercises/:id` | Nee   | Oefening ophalen op id.                             |
+| POST   | `/api/exercises`     | Admin | Oefening aanmaken.                                  |
+| PUT    | `/api/exercises/:id` | Admin | Oefening aanpassen.                                 |
 | DELETE | `/api/exercises/:id` | Admin | Oefening verwijderen als ze nergens gebruikt wordt. |
 
 Exercise body:
@@ -288,15 +291,15 @@ barbell, dumbbell, machine, bodyweight, cable, kettlebell
 
 ### Workouts
 
-| Method | Endpoint | Auth | Doel |
-|---|---|---|---|
-| GET | `/api/workouts` | Nee | Alle workout templates ophalen. |
-| GET | `/api/workouts/:id` | Nee | Workout template ophalen op id. |
-| POST | `/api/workouts` | Admin | Workout template aanmaken. |
-| PUT | `/api/workouts/:id` | Admin | Workout template aanpassen. |
-| POST | `/api/workouts/:workoutId/exercises` | Admin | Exercise toevoegen aan workout. |
-| DELETE | `/api/workouts/:workoutId/exercises/:exerciseId` | Admin | Exercise verwijderen uit workout. |
-| DELETE | `/api/workouts/:id` | Admin | Workout verwijderen als ze niet gebruikt wordt in een log. |
+| Method | Endpoint                                         | Auth  | Doel                                                       |
+| ------ | ------------------------------------------------ | ----- | ---------------------------------------------------------- |
+| GET    | `/api/workouts`                                  | Nee   | Alle workout templates ophalen.                            |
+| GET    | `/api/workouts/:id`                              | Nee   | Workout template ophalen op id.                            |
+| POST   | `/api/workouts`                                  | Admin | Workout template aanmaken.                                 |
+| PUT    | `/api/workouts/:id`                              | Admin | Workout template aanpassen.                                |
+| POST   | `/api/workouts/:workoutId/exercises`             | Admin | Exercise toevoegen aan workout.                            |
+| DELETE | `/api/workouts/:workoutId/exercises/:exerciseId` | Admin | Exercise verwijderen uit workout.                          |
+| DELETE | `/api/workouts/:id`                              | Admin | Workout verwijderen als ze niet gebruikt wordt in een log. |
 
 Workout body:
 
@@ -305,9 +308,7 @@ Workout body:
   "title": "Push Day",
   "category": "strength",
   "durationMinutes": 75,
-  "exercises": [
-    "exerciseId"
-  ]
+  "exercises": ["exerciseId"]
 }
 ```
 
@@ -327,15 +328,15 @@ strength, cardio
 
 ### Workout Logs
 
-| Method | Endpoint | Auth | Doel |
-|---|---|---|---|
-| GET | `/api/workout-logs` | User | Workout logs van de ingelogde gebruiker ophalen. |
-| GET | `/api/workout-logs/:id` | User | Een eigen workout log ophalen. |
-| POST | `/api/workout-logs` | User | Nieuwe workout log starten op basis van een workout. |
-| POST | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets` | User | Set toevoegen aan een oefening in een log. |
-| PUT | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets/:setId` | User | Set aanpassen. |
-| DELETE | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets/:setId` | User | Set verwijderen. |
-| DELETE | `/api/workout-logs/:id` | User | Eigen workout log verwijderen. |
+| Method | Endpoint                                                          | Auth | Doel                                                 |
+| ------ | ----------------------------------------------------------------- | ---- | ---------------------------------------------------- |
+| GET    | `/api/workout-logs`                                               | User | Workout logs van de ingelogde gebruiker ophalen.     |
+| GET    | `/api/workout-logs/:id`                                           | User | Een eigen workout log ophalen.                       |
+| POST   | `/api/workout-logs`                                               | User | Nieuwe workout log starten op basis van een workout. |
+| POST   | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets`        | User | Set toevoegen aan een oefening in een log.           |
+| PUT    | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets/:setId` | User | Set aanpassen.                                       |
+| DELETE | `/api/workout-logs/:logId/exercises/:exerciseEntryId/sets/:setId` | User | Set verwijderen.                                     |
+| DELETE | `/api/workout-logs/:id`                                           | User | Eigen workout log verwijderen.                       |
 
 Workout log starten:
 
@@ -394,12 +395,12 @@ MONGODB_URI
 
 Maak in Azure een App Service aan met een Node.js runtime. Gebruik voor productie minstens deze instellingen:
 
-| Setting | Waarde |
-|---|---|
-| Runtime stack | Node.js |
-| Start command | `npm start` |
+| Setting       | Waarde        |
+| ------------- | ------------- |
+| Runtime stack | Node.js       |
+| Start command | `npm start`   |
 | Build command | `npm install` |
-| Environment | Production |
+| Environment   | Production    |
 
 ### 3. App settings toevoegen
 
@@ -414,7 +415,7 @@ NODE_ENV=production
 Azure voorziet zelf een poort voor de applicatie. De code gebruikt daarom:
 
 ```js
-process.env.PORT || 3000
+process.env.PORT || 3000;
 ```
 
 ### 4. Deployen en testen
